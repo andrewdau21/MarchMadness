@@ -30,24 +30,30 @@ ui <- dashboardPage(
                 box(title = "Standings", 
                     status="primary", 
                     solidHeader = TRUE,
-                    width=3,
+                    width=4,
                     collapsible = TRUE,
                
                        
                           DT::dataTableOutput("standings") %>% withSpinner()),
-                box(title = "Standings Chart", 
-                    status="primary", 
+                box(title="Scoreboard",
+                    status="primary",
                     solidHeader = TRUE,
-                  width=9,
-                  
-                    collapsible = TRUE,
-                 plotlyOutput("standingschart", height = "800px")))),
+                    width=8,
+                    collapsible=TRUE,
+                    DT::dataTableOutput("table")    ))),
+                # box(title = "Standings Chart", 
+                #     status="primary", 
+                #     solidHeader = TRUE,
+                #   width=9,
+                #   
+                #     collapsible = TRUE,
+                #  plotlyOutput("standingschart", height = "800px")))),
       
     
       
       # Second tab content
       tabItem(tabName = "scoreboard",
-              DT::dataTableOutput("table")    
+              #DT::dataTableOutput("table")    
       ),
       tabItem(tabName = "chat",
               includeCSS("shinychat.css"),

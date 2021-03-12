@@ -411,7 +411,12 @@ function(input, output, session) {
       espn_season_2018_final <- espn_season_2018_final %>%
         select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob) %>%
         mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
-        mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>'))
+        mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) 
+      
+      #temp_data <-espn_season_2018_final  %>%
+       # dplyr::select(home_score, home_logo, time, period, away_logo, away_score)
+      
+      #print(temp_data)
       
       #print(espn_season_2018_final)
       
@@ -419,6 +424,10 @@ function(input, output, session) {
       
       proxy1 <- DT::dataTableProxy('table')
       DT::replaceData(proxy1, espn_season_2018_final)
+      
+      #proxy1 <- DT::dataTableProxy('table')
+      print("replace proxy")
+      #DT::replaceData(proxy1, temp_data)
       
    # data(espn_season_2018_final)  
     
@@ -516,17 +525,35 @@ function(input, output, session) {
                          select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob) %>%
                          mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
                          mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>'))
-                       values <- reactiveValues(df_data = espn_season_2018_final)
+                       
+                       #temp_data <- espn_season_2018_final %>%
+                        # dplyr::select(home_score, home_logo, time, period, away_logo, away_score)
+                       
+                       values <- reactiveValues(df_data =espn_season_2018_final)
                        
                     
   
  
   output$table <- DT::renderDataTable({
     
+      
+      DT::datatable(values$df_data, escape=FALSE, colnames = rep("", ncol(values$df_data)),
+                    
+                    options = list(scrollX = TRUE,
+                                   autoWidth=TRUE,
+                                   bsort=FALSE,
+                                   dom='t',
+                                   ordering=FALSE
+                                  ))
   
-    DT::datatable(values$df_data, escape=FALSE,
-                  options = list(scrollX = TRUE))
-  }
+  
+  # 
+  #   DT::datatable(values$df_data, escape=FALSE, rownames = NULL, 
+  #                       options = list(scrollX = TRUE,
+  #                                dom = 't', 
+  #                                bSort=FALSE,
+  #                                autoWidth=TRUE))
+   }
   )
   
   output$standings <- DT::renderDataTable({
