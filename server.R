@@ -30,7 +30,7 @@ function(input, output, session) {
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
   
   #compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
-  compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
+  compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210316-20210401&groups=50')
   
   #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams')
   
@@ -115,7 +115,7 @@ function(input, output, session) {
   #espn_season_2018_final %>% 
   # count(season_type) %>%
   
-  live_scores <- espn_season_2018_final %>%
+  live_scores <<- espn_season_2018_final %>%
     select(name,short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob, home_team_name, away_team_name) %>%
     mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
     mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>'))
@@ -129,14 +129,14 @@ function(input, output, session) {
     mutate(winner = ifelse(home_score > away_score, home_team_name, away_team_name))%>%
     count(winner, name="wins")
   
-  live_wins_home <- live_scores %>%
+  live_wins_home <<- live_scores %>%
     filter(current_stat %in% c('In Progress', "Halftime")) %>%
     mutate(winner = home_team_name) %>%
     mutate(live_wins = home_prob) %>%
     dplyr::select(winner, live_wins)
   
   
-  live_wins_away <-  live_scores %>%
+  live_wins_away <<-  live_scores %>%
     filter(current_stat %in% c('In Progress', "Halftime")) %>%
     mutate(winner = away_team_name) %>%
     mutate(live_wins = 1- home_prob) %>%
@@ -145,7 +145,9 @@ function(input, output, session) {
   live_wins <- rbind(live_wins_home, live_wins_away)
   
   
-  total_wins <- wins %>% full_join(live_wins, by = "winner")
+  total_wins <<- wins %>% full_join(live_wins, by = "winner")
+  
+  print(total_wins)
   
   
   ##aliveteams
@@ -175,7 +177,7 @@ function(input, output, session) {
     temp_date <- str_remove_all(as.character(Sys.Date()), "-")
     
     #compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
-    compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
+    compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210316-20210401&groups=50')
     
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams')
     
@@ -313,133 +315,146 @@ function(input, output, session) {
     
   })
   
-  
+
   observe({
     # Re-execute this reactive expression after 1000 milliseconds
-    invalidateLater(10000, session)
-    
+    invalidateLater(30000, session)
+
     # Do something each time this is invalidated.
     # The isolate() makes this observer _not_ get invalidated and re-executed
     # when input$n changes.
     #print("in the invalidator")
-    
-    
+
+
+
     
     temp_date <- str_remove_all(as.character(Sys.Date()), "-")
     
     compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
-      
-      myfile <- getURL(compiled_url, simplifyVector=FALSE)
-      
-      
-      raw_espn_json <- fromJSON(myfile)
-      
-     # raw_espn_json %>% str(max.level = 1)
-      
-      
-      
-      espn_games_2018 <- raw_espn_json[["events"]] %>% 
-        enframe() %>% 
-        #dplyr::rename(row_id = name) %>% 
-        mutate(row_id = name) %>%
-        select(-name) %>%
-        unnest_wider(value) %>% 
-        mutate(game_id = id) %>%
-        select(-id)
-        #dplyr::rename(game_id = id)
-      
-      espn_season_2018 <- espn_games_2018 %>% 
-        unnest_wider(season) %>% 
-        unchop(competitions)
-      
-      
-      
-    #  espn_season_2018 %>% 
-     #   select(competitions) %>% 
-      #  slice(1) %>% 
-       # str(max.level = 5)
-      
-      
-      ex_id_subset <- espn_season_2018[["competitions"]][[1]][["competitors"]][[1]][["id"]]
-      
-      ex_id_hoist <- espn_season_2018 %>%
-        hoist(competitions, home_team_id = list("competitors", 1, "id"))
-      
-      all.equal(ex_id_subset, ex_id_hoist[["home_team_id"]][1])
-      
-      
-      
-      espn_season_2018_final <- espn_season_2018 %>%
-        hoist(
-          competitions,
-          home_team_id = list("competitors", 1, "id"),
-          home_team_abb = list("competitors", 1, "team", "abbreviation"),
-          away_team_id = list("competitors", 2, "id"),
-          away_team_abb = list("competitors", 2, "team", "abbreviation"),
-          home_score = list("competitors", 1, "score"),
-          away_score = list("competitors", 2, "score"),
-          home_logo = list("competitors",1,"team","logo"),
-          away_logo = list("competitors",2,"team","logo"),
-          home_prob = list("situation","lastPlay","probability","homeWinPercentage"),
-          venue = list("venue","fullName")
-          
-        ) %>%
-        hoist(
-          status,
-          time = list("displayClock"),
-          period = list("period"),
-          current_stat = list("type","description")
-          
-        ) %>%
-        select(-where(is.list), -row_id) %>%
-        janitor::clean_names() %>%
-        #dplyr::rename(season_type = type) %>%
-        mutate(season_type = type) %>%
-        select(-type) %>%
-        mutate(
-          season_type = case_when(
-            season_type == 1L ~ "Preseason",
-            season_type == 2L ~ "Regular Season",
-            season_type == 3L ~ "Playoffs",
-            TRUE ~ as.character(season_type),
-          )
+    #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
+    
+    
+    myfile <- getURL(compiled_url, simplifyVector=FALSE)
+    
+    
+    raw_espn_json <- fromJSON(myfile)
+    
+    raw_espn_json %>% str(max.level = 1)
+    
+    
+    
+    espn_games_2018 <- raw_espn_json[["events"]] %>% 
+      enframe() %>% 
+      #dplyr::rename(row_id = name) %>% 
+      mutate(row_id = name) %>%
+      select(-name) %>%
+      unnest_wider(value) %>% 
+      mutate(game_id = id) %>%
+      select(-id)
+    #dplyr::rename(game_id = id)
+    
+    espn_season_2018 <- espn_games_2018 %>% 
+      unnest_wider(season) %>% 
+      unchop(competitions)
+    
+    
+    
+    #               espn_season_2018 %>% 
+    #                select(competitions) %>% 
+    #               slice(1) %>% 
+    #              str(max.level = 5)
+    
+    
+    ex_id_subset <- espn_season_2018[["competitions"]][[1]][["competitors"]][[1]][["id"]]
+    
+    ex_id_hoist <- espn_season_2018 %>%
+      hoist(competitions, home_team_id = list("competitors", 1, "id"))
+    
+    all.equal(ex_id_subset, ex_id_hoist[["home_team_id"]][1])
+    
+    
+    
+    espn_season_2018_final <- espn_season_2018 %>%
+      hoist(
+        competitions,
+        home_team_id = list("competitors", 1, "id"),
+        home_team_abb = list("competitors", 1, "team", "abbreviation"),
+        away_team_id = list("competitors", 2, "id"),
+        away_team_abb = list("competitors", 2, "team", "abbreviation"),
+        home_score = list("competitors", 1, "score"),
+        away_score = list("competitors", 2, "score"),
+        home_logo = list("competitors",1,"team","logo"),
+        away_logo = list("competitors",2,"team","logo"),
+        home_prob = list("situation","lastPlay","probability","homeWinPercentage"),
+        venue = list("venue","fullName")
+        
+      ) %>%
+      hoist(
+        status,
+        time = list("displayClock"),
+        period = list("period"),
+        current_stat = list("type","description")
+        
+      ) %>%
+      select(-where(is.list), -row_id) %>%
+      janitor::clean_names() %>%
+      #dplyr::rename(season_type = type) %>%
+      mutate(season_type = type) %>%
+      select(-type) %>%
+      mutate(
+        season_type = case_when(
+          season_type == 1L ~ "Preseason",
+          season_type == 2L ~ "Regular Season",
+          season_type == 3L ~ "Playoffs",
+          TRUE ~ as.character(season_type),
         )
-      
-      #espn_season_2018_final %>% 
-      # count(season_type) %>%
-      
-      espn_season_2018_final <- espn_season_2018_final %>%
-        select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob) %>%
-        mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
-        mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) 
-      
+      )
+    
+    #espn_season_2018_final %>% 
+    # count(season_type) %>%
+    
+    espn_season_2018_final_final <- espn_season_2018_final %>%
+      select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob) %>%
+      mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
+      mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
+      mutate(period = ifelse(period == 1, paste0(period,"st", " ", time), paste0(period,"nd", " ", time))) %>%
+      mutate(period = ifelse(current_stat == "Halftime", "Halftime", period)) %>%
+      mutate(period = ifelse(current_stat == "Final", "Final", period)) %>%
+      dplyr::select(home_logo, home_score, period, away_score, away_logo)
+    
+     # print("proxy1")
+      #print(espn_season_2018_final_final)
       #temp_data <-espn_season_2018_final  %>%
        # dplyr::select(home_score, home_logo, time, period, away_logo, away_score)
-      
+
       #print(temp_data)
-      
+
       #print(espn_season_2018_final)
-      
-      #values$df_data <- espn_season_2018_final
-      
-      proxy1 <- DT::dataTableProxy('table')
-      DT::replaceData(proxy1, espn_season_2018_final)
-      
+
+      values$df_data <- espn_season_2018_final_final
+
       #proxy1 <- DT::dataTableProxy('table')
-      print("replace proxy")
+      #DT::replaceData(proxy1, espn_season_2018_final_final)
+
+      #values <- reactiveValues(df_data =espn_season_2018_final_final)
+
+      #proxy1 <- DT::dataTableProxy('table')
+      #print("replace proxy")
+
       #DT::replaceData(proxy1, temp_data)
-      
-   # data(espn_season_2018_final)  
-    
-    
-    
+
+   # data(espn_season_2018_final)
+
+
+
   })
   
   
   
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
   
-  compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
+ compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
+  #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
   
                         
                        myfile <- getURL(compiled_url, simplifyVector=FALSE)
@@ -521,49 +536,58 @@ function(input, output, session) {
                        #espn_season_2018_final %>% 
                        # count(season_type) %>%
                        
-                       espn_season_2018_final <- espn_season_2018_final %>%
+                       espn_season_2018_final_final <- espn_season_2018_final %>%
                          select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob) %>%
                          mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
-                         mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>'))
+                         mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
+                         mutate(period = ifelse(period == 1, paste0(period,"st", " ", time), paste0(period,"nd", " ", time))) %>%
+                         mutate(period = ifelse(current_stat == "Halftime", "Halftime", period)) %>%
+                         mutate(period = ifelse(current_stat == "Final", "Final", period)) %>%
+                         dplyr::select(home_logo, home_score, period, away_score, away_logo)
                        
                        #temp_data <- espn_season_2018_final %>%
                         # dplyr::select(home_score, home_logo, time, period, away_logo, away_score)
                        
-                       values <- reactiveValues(df_data =espn_season_2018_final)
+                       values <- reactiveValues(df_data =espn_season_2018_final_final)
                        
-                    
+output$fullstandings <- DT::renderDataTable({
+                         
+                         
+                         DT::datatable(rv$m, escape=FALSE, 
+                                       rownames=FALSE,
+                                       
+                                       options = list(scrollX = TRUE,
+                                                      autoWidth=TRUE
+                                                     
+                                                      #columnDefs = list(list(targets = 7,visible=TRUE))
+                                                      
+                                       ))
+                         
+                       }
+                       )
+                       
   
  
   output$table <- DT::renderDataTable({
     
       
       DT::datatable(values$df_data, escape=FALSE, colnames = rep("", ncol(values$df_data)),
+                    rownames=FALSE,
                     
                     options = list(scrollX = TRUE,
                                    autoWidth=TRUE,
                                    bsort=FALSE,
                                    dom='t',
                                    ordering=FALSE
+                                   #columnDefs = list(list(targets = 7,visible=TRUE))
+                                  
                                   ))
-  
-  
-  # 
-  #   DT::datatable(values$df_data, escape=FALSE, rownames = NULL, 
-  #                       options = list(scrollX = TRUE,
-  #                                dom = 't', 
-  #                                bSort=FALSE,
-  #                                autoWidth=TRUE))
+    
    }
   )
   
   output$standings <- DT::renderDataTable({
-    
-  
-    
-    
-    
-    
-    
+
     #library(DT)
     datatable(
       cbind(' ' = '&oplus;', rv$m ), escape = FALSE,
@@ -571,6 +595,7 @@ function(input, output, session) {
         selection = 'single',
         dom = 't',
         autoWidth = TRUE,
+        scrollX=TRUE,
         pageLength = 500,
         columnDefs = list(
           

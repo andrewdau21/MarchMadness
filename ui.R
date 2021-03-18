@@ -18,7 +18,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard")),
-      menuItem("NCAA Scoreboard", tabName = "scoreboard", icon = icon("th")),
+      menuItem("Full Standings", tabName = "scoreboard", icon = icon("th")),
       menuItem("Chat", tabName="chat", icon =icon("comments") )
     )
   ),
@@ -27,10 +27,11 @@ ui <- dashboardPage(
       # First tab content
       tabItem(tabName = "leaderboard",
               fluidRow(
-                box(title = "Standings", 
+                box(title = "Leaderboard", 
                     status="primary", 
                     solidHeader = TRUE,
                     width=4,
+                    align = "center",
                     collapsible = TRUE,
                
                        
@@ -39,6 +40,7 @@ ui <- dashboardPage(
                     status="primary",
                     solidHeader = TRUE,
                     width=8,
+                    align = "center",
                     collapsible=TRUE,
                     DT::dataTableOutput("table")    ))),
                 # box(title = "Standings Chart", 
@@ -53,7 +55,8 @@ ui <- dashboardPage(
       
       # Second tab content
       tabItem(tabName = "scoreboard",
-              #DT::dataTableOutput("table")    
+  
+              DT::dataTableOutput("fullstandings")   
       ),
       tabItem(tabName = "chat",
               includeCSS("shinychat.css"),
