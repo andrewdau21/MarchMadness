@@ -2,7 +2,7 @@
 ui <- fluidPage(
 
 fluidPage(
-  titlePanel("March Madness 2021"),
+  titlePanel("Salary Cap Madness 2021"),
   
   sidebarLayout(
     sidebarPanel("Under Construction"),
@@ -14,7 +14,9 @@ fluidPage(
 )
 
 ui <- dashboardPage(
-  dashboardHeader(title="March Madness 2021"),
+  dashboardHeader(title="Salary Cap Madness 2021"),
+ 
+  
   dashboardSidebar(
     sidebarMenu(
       menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard")),
@@ -23,6 +25,9 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+    tags$head( 
+      tags$style(HTML("a {color: black}")), HTML("<base target='_blank'>") ,
+      tags$link(rel="shortcut icon", href="basketball.jpg"),),
     tabItems(
       # First tab content
       tabItem(tabName = "leaderboard",

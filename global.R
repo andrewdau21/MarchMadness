@@ -14,6 +14,7 @@ library(formattable)
 library(plotly)
 library(reshape)
 
-raw_selections <- read.csv("./Data/raw_selections_b10.csv")
+raw_selections <- read.csv("./Data/raw_selections_real.csv")
 standings <- read.csv("./Data/scores_temp.csv")
 standings <- standings %>% arrange(desc(Score))
+master <- read.csv("./Data/all_teams.csv", stringsAsFactors = FALSE)  
