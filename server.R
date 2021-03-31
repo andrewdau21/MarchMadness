@@ -31,7 +31,7 @@ function(input, output, session) {
   #compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
   #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210315-20210318')
   
-  compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210320&groups=100')
+  compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210331&groups=100')
   
   #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams')
   
@@ -130,6 +130,14 @@ function(input, output, session) {
     mutate(winner = ifelse(home_score > away_score, home_team_name, away_team_name))%>%
     count(winner, name="wins")
   
+  uncontested_wins <-  live_scores %>%
+    filter(current_stat == 'Uncontested') %>%
+    mutate(winner = ifelse(home_score > away_score, home_team_name, away_team_name))%>%
+    count(winner, name="wins") %>%
+    mutate(wins = wins/2)
+  
+  wins <- rbind(wins, uncontested_wins)
+  
   wins$winner <- as.character(wins$winner)
   
   live_wins_home <- live_scores %>%
@@ -144,6 +152,8 @@ function(input, output, session) {
     mutate(winner = away_team_name) %>%
     mutate(live_wins = 1- home_prob) %>%
     dplyr::select(winner, live_wins)
+  
+
   
   live_wins <- rbind(live_wins_home, live_wins_away)
   live_wins$winner <- as.character(live_wins$winner)
@@ -167,12 +177,25 @@ function(input, output, session) {
     group_by(Entry) %>%
     summarise(wins = sum(wins,na.rm=TRUE), live_wins=sum(live_wins, na.rm=TRUE))
   
+  standings <- standings %>%
+    mutate(live_wins = live_wins + wins)
+  
   standings_live <- standings %>% left_join(raw_selections, by = "Entry")
   
   losers <- live_scores %>%
     filter(current_stat == 'Final') %>%
     mutate(loser = ifelse(home_score < away_score, home_team_name, away_team_name))%>%
     count(loser, name="losses")
+  
+  
+  uncontested_losers <- live_scores %>%
+    filter(current_stat == 'Uncontested') %>%
+    mutate(loser = ifelse(home_score < away_score, home_team_name, away_team_name))%>%
+    count(loser, name="losses")
+  
+  losers <- rbind(losers, uncontested_losers)
+  
+  
   
   
   losers$loser <- as.character(losers$loser)
@@ -186,25 +209,50 @@ function(input, output, session) {
     group_by(Entry) %>%
     summarise(dead_money = sum(cost,na.rm=TRUE)) 
   
-  standings_live <- standings_live %>% left_join(temp_money3, by = "Entry") %>%
+  standings_live <<- standings_live %>% left_join(temp_money3, by = "Entry") %>%
     replace_na(list(dead_money=0)) %>%
-    mutate(live_money = 100-dead_money)
+    mutate(live_money = 100-dead_money) %>%
+    mutate(loser1 = ifelse(Team1 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser2 = ifelse(Team2 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser3 = ifelse(Team3 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser4 = ifelse(Team4 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser5 = ifelse(Team5 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser6 = ifelse(Team6 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser7 = ifelse(Team7 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser8 = ifelse(Team8 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser9 = ifelse(Team9 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser10 = ifelse(Team10 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser11 = ifelse(Team11 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser12 = ifelse(Team12 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser13 = ifelse(Team13 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser14 = ifelse(Team14 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser15 = ifelse(Team15 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser16 = ifelse(Team16 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser17 = ifelse(Team17 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser18 = ifelse(Team18 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser19 = ifelse(Team19 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser20 = ifelse(Team20 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser21 = ifelse(Team21 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser22 = ifelse(Team22 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser23 = ifelse(Team23 %in% as.vector(losers$loser), .1, 1)) %>%
+    mutate(loser24 = ifelse(Team24 %in% as.vector(losers$loser), .1, 1)) 
   
   #print(standings_live)
   
   rv <- reactiveValues(m=standings_live)
   
-  
+  #proxy <- DT::dataTableProxy('standings')
   observe({
     # Re-execute this reactive expression after 1000 milliseconds
-    invalidateLater(30000, session)
-    
+    invalidateLater(10000, session)
+    if (input$autorefresh==1)
+    {
     
     temp_date <- str_remove_all(as.character(Sys.Date()), "-")
     
     #compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210316-20210317')
-    compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210320&groups=100')
+    compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210331&groups=100')
     
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams')
     
@@ -303,6 +351,14 @@ function(input, output, session) {
       mutate(winner = ifelse(home_score > away_score, home_team_name, away_team_name))%>%
       count(winner, name="wins")
     
+    uncontested_wins <-  live_scores %>%
+      filter(current_stat == 'Uncontested') %>%
+      mutate(winner = ifelse(home_score > away_score, home_team_name, away_team_name))%>%
+      count(winner, name="wins") %>%
+      mutate(wins = wins/2)
+    
+    wins <- rbind(wins, uncontested_wins)
+    
     wins$winner <- as.character(wins$winner)
     
     live_wins_home <- live_scores %>%
@@ -317,6 +373,8 @@ function(input, output, session) {
       mutate(winner = away_team_name) %>%
       mutate(live_wins = 1- home_prob) %>%
       dplyr::select(winner, live_wins)
+    
+
     
     live_wins <- rbind(live_wins_home, live_wins_away)
     
@@ -338,6 +396,9 @@ function(input, output, session) {
       group_by(Entry) %>%
       summarise(wins = sum(wins,na.rm=TRUE), live_wins=sum(live_wins, na.rm=TRUE))
     
+    standings <- standings %>%
+      mutate(live_wins = live_wins + wins)
+    
     standings_live <- standings %>% left_join(raw_selections, by = "Entry")
     #print(standings_live)
     
@@ -346,6 +407,12 @@ function(input, output, session) {
       mutate(loser = ifelse(home_score < away_score, home_team_name, away_team_name))%>%
       count(loser, name="losses")
     
+     uncontested_losers <- live_scores %>%
+      filter(current_stat == 'Uncontested') %>%
+      mutate(loser = ifelse(home_score < away_score, home_team_name, away_team_name))%>%
+      count(loser, name="losses")
+    
+     losers <- rbind(losers, uncontested_losers)
     
     losers$loser <- as.character(losers$loser)
     
@@ -360,17 +427,46 @@ function(input, output, session) {
     
     standings_live <- standings_live %>% left_join(temp_money3, by = "Entry") %>%
       replace_na(list(dead_money=0)) %>%
-      mutate(live_money = 100-dead_money)
+      mutate(live_money = 100-dead_money) %>%
+      mutate(loser1 = ifelse(Team1 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser2 = ifelse(Team2 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser3 = ifelse(Team3 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser4 = ifelse(Team4 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser5 = ifelse(Team5 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser6 = ifelse(Team6 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser7 = ifelse(Team7 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser8 = ifelse(Team8 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser9 = ifelse(Team9 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser10 = ifelse(Team10 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser11 = ifelse(Team11 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser12 = ifelse(Team12 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser13 = ifelse(Team13 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser14 = ifelse(Team14 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser15 = ifelse(Team15 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser16 = ifelse(Team16 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser17 = ifelse(Team17 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser18 = ifelse(Team18 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser19 = ifelse(Team19 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser20 = ifelse(Team20 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser21 = ifelse(Team21 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser22 = ifelse(Team22 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser23 = ifelse(Team23 %in% as.vector(losers$loser), .1, 1)) %>%
+      mutate(loser24 = ifelse(Team24 %in% as.vector(losers$loser), .1, 1)) 
     
     
     rv$m <- standings_live
+    #DT::replaceData(proxy, standings_live)
+    }
     
   })
   
-
+  
   observe({
     # Re-execute this reactive expression after 1000 milliseconds
-    invalidateLater(30000, session)
+    invalidateLater(10000, session)
+    if(input$autorefresh==1)
+    {
+      print("I invalidated!")
 
     # Do something each time this is invalidated.
     # The isolate() makes this observer _not_ get invalidated and re-executed
@@ -381,6 +477,7 @@ function(input, output, session) {
 
     
     temp_date <- str_remove_all(as.character(Sys.Date()), "-")
+    #temp_date <- '20210327'
     
     compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date)
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
@@ -472,7 +569,8 @@ function(input, output, session) {
       mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
       mutate(period = ifelse(period == 3, paste0("OT-1"), period)) %>%
       mutate(period = ifelse(period == 4, paste0("OT-2"), period)) %>%
-      mutate(period = ifelse(period == 1, paste0(period,"st", " ", time), paste0(period,"nd", " ", time))) %>%
+      mutate(period = ifelse(period == 1, paste0(period,"st", " ", time), period)) %>%
+      mutate(period = ifelse(period == 2, paste0(period, "nd", " ", time), period)) %>%
       mutate(period = ifelse(current_stat == "Halftime", "Halftime", period)) %>%
       mutate(period = ifelse(current_stat == "Final", "Final", period)) %>%
       mutate(period = ifelse(current_stat == "Scheduled", current_time, period)) %>%
@@ -488,9 +586,10 @@ function(input, output, session) {
       #print(espn_season_2018_final)
 
       values$df_data <- espn_season_2018_final_final
+      
 
       #proxy1 <- DT::dataTableProxy('table')
-      #DT::replaceData(proxy1, espn_season_2018_final_final)
+  #    DT::replaceData(proxy1, espn_season_2018_final_final)
 
       #values <- reactiveValues(df_data =espn_season_2018_final_final)
 
@@ -501,13 +600,14 @@ function(input, output, session) {
 
    # data(espn_season_2018_final)
 
-
+}
 
   })
   
   
   
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
+  #temp_date <- '20210327'
   
  compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date)
   #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
@@ -599,7 +699,8 @@ function(input, output, session) {
                          mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
                          mutate(period = ifelse(period == 3, paste0("OT-1"), period)) %>%
                          mutate(period = ifelse(period == 4, paste0("OT-2"), period)) %>%
-                         mutate(period = ifelse(period == 1, paste0(period,"st", " ", time), paste0(period,"nd", " ", time))) %>%
+                         mutate(period = ifelse(period == 1, paste0(period,"st", " ", time), period)) %>%
+                         mutate(period = ifelse(period == 2, paste0(period, "nd", " ", time), period)) %>%
                          mutate(period = ifelse(current_stat == "Halftime", "Halftime", period)) %>%
                          mutate(period = ifelse(current_stat == "Final", "Final", period)) %>%
                          mutate(period = ifelse(current_stat == "Scheduled", current_time, period)) %>%
@@ -612,21 +713,26 @@ function(input, output, session) {
                        
 output$fullstandings <- DT::renderDataTable({
                          
-                      temp_table_standings <- rv$m %>%
-                        dplyr::select(Entry, wins, live_wins, live_money, Team1, Team2, Team3
+                      temp_table_standings <- rv$m %>% left_join(tiebreaker, by=c("Entry")) %>%
+                        dplyr::select(Entry, wins, live_wins, live_money, TieBreaker, Team1, Team2, Team3
                                     , Team4, Team5, Team6, Team7, Team8, Team9, Team10,
-                                    Team11, Team12, Team13, Team14, Team15, Team16)
+                                    Team11, Team12, Team13, Team14, Team15, Team16, Team17, Team18, Team19, Team20, Team21, Team22, Team23, Team24 )
                          
                          DT::datatable(temp_table_standings, escape=FALSE, 
                                        rownames=FALSE,
+                                       extensions = 'FixedColumns',
                                        
                                        options = list(scrollX = TRUE,
                                                       autoWidth=TRUE,
-                                                      pageLength = 100
+                                                      pageLength = 100,
+                                                      fixedColumns=TRUE
                                                      
                                                       #columnDefs = list(list(targets = 7,visible=TRUE))
                                                       
-                                       ))
+                                       ))# %>% 
+#                           formatStyle('Team1',backgroundColor = styleEqual(c("Gonzaga","Ohio State"), c('gray', 'yellow'))) %>%
+ #                          formatStyle('Team2',backgroundColor = styleEqual(c("Gonzaga","Ohio State"), c('gray', 'yellow')))
+                  
                          
                        }
                        )
@@ -724,18 +830,44 @@ output$fullstandings <- DT::renderDataTable({
           NULL,
           NULL,
           NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
           
           
           
           list(title = 'Money')
         ),
-        order = list(list(3, 'desc')),
+        order = list(list(4, 'desc'), list(79, 'desc')),
         columnDefs = list(
           
           list(list(width='10px',targets=c(3,4,5))),
           list(visible = FALSE, targets = c(0,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,
                                             22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
-                                            ,40, 41,42,43,44,45,46,47,48,49,50,51,52,53,54)),
+                                            ,40, 41,42,43,44,45,46,47,48,49,50,51,52,53,54, 55, 56, 57, 58, 59, 60,61,
+                                            62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,80,81,82,83
+                                            ,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103)),
           list(orderable = FALSE, className = 'details-control', targets = 1)
         )
       ),
@@ -745,22 +877,30 @@ output$fullstandings <- DT::renderDataTable({
 
     return '<div style=\"background-color:#eee; padding: .5em;\">  ' + 
      
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[22] + '.png\" width = \"' +d[38] +  '\" height = \"' + d[38] + '\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[23] + '.png\" width = \"' + d[39] + '\" height = \"' + d[39] + '\" opacity = .2 </img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[24] + '.png\" width = \"'+d[40]+'\" height = \"' + d[40] + '\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[25] + '.png\" width = \"'+d[41]+ '\" height = \"' + d[41] +'\"</img> '  +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[26] + '.png\" width = \"'+d[42]+ '\" height = \"' + d[42] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[27] + '.png\" width = \"'+d[43]+ '\" height = \"' + d[43] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[28] + '.png\" width = \"'+d[44]+ '\" height = \"' + d[44] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[29] + '.png\" width = \"'+d[45]+ '\" height = \"' + d[45] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[30] + '.png\" width = \"'+d[46]+ '\" height = \"' + d[46] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[31] + '.png\" width = \"'+d[47]+ '\" height = \"' + d[47] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[32] + '.png\" width = \"'+d[48]+ '\" height = \"' + d[48] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[33] + '.png\" width = \"'+d[49]+ '\" height = \"' + d[49] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[34] + '.png\" width = \"'+d[50]+ '\" height = \"' + d[50] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[35] + '.png\" width = \"'+d[51]+ '\" height = \"' + d[51] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[36] + '.png\" width = \"'+d[52]+ '\" height = \"' + d[52] +'\"</img> ' +
-    '<img src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[37] + '.png\" width = \"'+d[53]+ '\" height = \"' + d[53] +'\"</img> ' 
+    '<img style=\"opacity:' + d[80] + ';\" src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[30] + '.png\" width = \"' +d[54] +  '\" height = \"' + d[54] + '\"</img> ' +
+    '<img  style=\"opacity:' + d[81] + ';\" src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[31] + '.png\" width = \"' + d[55] + '\" height = \"' + d[55] + '\" opacity = .2 </img> ' +
+    '<img style=\"opacity:' + d[82] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[32] + '.png\" width = \"'+d[56]+'\" height = \"' + d[56] + '\"</img> ' +
+    '<img style=\"opacity:' + d[83] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[33] + '.png\" width = \"'+d[57]+ '\" height = \"' + d[57] +'\"</img> '  +
+    '<img style=\"opacity:' + d[84] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[34] + '.png\" width = \"'+d[58]+ '\" height = \"' + d[58] +'\"</img> ' +
+    '<img style=\"opacity:' + d[85] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[35] + '.png\" width = \"'+d[59]+ '\" height = \"' + d[59] +'\"</img> ' +
+    '<img style=\"opacity:' + d[86] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[36] + '.png\" width = \"'+d[60]+ '\" height = \"' + d[60] +'\"</img> ' +
+    '<img style=\"opacity:' + d[87] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[37] + '.png\" width = \"'+d[61]+ '\" height = \"' + d[61] +'\"</img> ' +
+    '<img style=\"opacity:' + d[88] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[38] + '.png\" width = \"'+d[62]+ '\" height = \"' + d[62] +'\"</img> ' +
+    '<img style=\"opacity:' + d[89] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[39] + '.png\" width = \"'+d[63]+ '\" height = \"' + d[63] +'\"</img> ' +
+    '<img style=\"opacity:' + d[90] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[40] + '.png\" width = \"'+d[64]+ '\" height = \"' + d[64] +'\"</img> ' +
+    '<img style=\"opacity:' + d[91] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[41] + '.png\" width = \"'+d[65]+ '\" height = \"' + d[65] +'\"</img> ' +
+    '<img style=\"opacity:' + d[92] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[42] + '.png\" width = \"'+d[66]+ '\" height = \"' + d[66] +'\"</img> ' +
+    '<img style=\"opacity:' + d[93] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[43] + '.png\" width = \"'+d[67]+ '\" height = \"' + d[67] +'\"</img> ' +
+    '<img style=\"opacity:' + d[94] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[44] + '.png\" width = \"'+d[68]+ '\" height = \"' + d[68] +'\"</img> ' +
+    '<img style=\"opacity:' + d[95] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[45] + '.png\" width = \"'+d[69]+ '\" height = \"' + d[69] +'\"</img> ' +
+    '<img style=\"opacity:' + d[96] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[46] + '.png\" width = \"'+d[70]+ '\" height = \"' + d[70] +'\"</img> ' +
+    '<img style=\"opacity:' + d[97] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[47] + '.png\" width = \"'+d[71]+ '\" height = \"' + d[71] +'\"</img> ' +
+    '<img style=\"opacity:' + d[98] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[48] + '.png\" width = \"'+d[72]+ '\" height = \"' + d[72] +'\"</img> ' +
+    '<img style=\"opacity:' + d[99] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[49] + '.png\" width = \"'+d[73]+ '\" height = \"' + d[73] +'\"</img> ' +
+    '<img style=\"opacity:' + d[100] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[50] + '.png\" width = \"'+d[74]+ '\" height = \"' + d[74] +'\"</img> ' +
+    '<img style=\"opacity:' + d[101] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[51] + '.png\" width = \"'+d[75]+ '\" height = \"' + d[75] +'\"</img> ' +
+    '<img style=\"opacity:' + d[102] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[52] + '.png\" width = \"'+d[76]+ '\" height = \"' + d[76] +'\"</img> ' +
+    '<img style=\"opacity:' + d[103] + ';\"  src=\"https://a.espncdn.com/i/teamlogos/ncaa/500/'+d[53] + '.png\" width = \"'+d[77]+ '\" height = \"' + d[77] +'\"</img> '
            '</div>';
   };
   table.on('click', 'td.details-control', function() {
