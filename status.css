@@ -1,0 +1,14 @@
+
+
+.tag {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.status-final {
+  background: hsl(350, 70%, 90%);
+  color: hsl(350, 45%, 30%);
+}

@@ -31,7 +31,7 @@ function(input, output, session) {
   #compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
   #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210315-20210318')
   
-  compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210331&groups=100')
+  compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210406&groups=100')
   
   #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams')
   
@@ -209,7 +209,7 @@ function(input, output, session) {
     group_by(Entry) %>%
     summarise(dead_money = sum(cost,na.rm=TRUE)) 
   
-  standings_live <<- standings_live %>% left_join(temp_money3, by = "Entry") %>%
+  standings_live <- standings_live %>% left_join(temp_money3, by = "Entry") %>%
     replace_na(list(dead_money=0)) %>%
     mutate(live_money = 100-dead_money) %>%
     mutate(loser1 = ifelse(Team1 %in% as.vector(losers$loser), .1, 1)) %>%
@@ -237,6 +237,9 @@ function(input, output, session) {
     mutate(loser23 = ifelse(Team23 %in% as.vector(losers$loser), .1, 1)) %>%
     mutate(loser24 = ifelse(Team24 %in% as.vector(losers$loser), .1, 1)) 
   
+  
+  standings_live <-standings_live %>% left_join(tiebreaker, by=c("Entry"))
+  
   #print(standings_live)
   
   rv <- reactiveValues(m=standings_live)
@@ -252,7 +255,7 @@ function(input, output, session) {
     
     #compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210316-20210317')
-    compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210331&groups=100')
+    compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210406&groups=100')
     
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams')
     
@@ -453,6 +456,8 @@ function(input, output, session) {
       mutate(loser23 = ifelse(Team23 %in% as.vector(losers$loser), .1, 1)) %>%
       mutate(loser24 = ifelse(Team24 %in% as.vector(losers$loser), .1, 1)) 
     
+    standings_live <-standings_live %>% left_join(tiebreaker, by=c("Entry"))
+    
     
     rv$m <- standings_live
     #DT::replaceData(proxy, standings_live)
@@ -477,7 +482,7 @@ function(input, output, session) {
 
     
     temp_date <- str_remove_all(as.character(Sys.Date()), "-")
-    #temp_date <- '20210327'
+    temp_date <- '20210405'
     
     compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date)
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
@@ -607,7 +612,7 @@ function(input, output, session) {
   
   
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
-  #temp_date <- '20210327'
+  temp_date <- '20210405'
   
  compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date)
   #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
@@ -713,7 +718,7 @@ function(input, output, session) {
                        
 output$fullstandings <- DT::renderDataTable({
                          
-                      temp_table_standings <- rv$m %>% left_join(tiebreaker, by=c("Entry")) %>%
+                      temp_table_standings <- rv$m  %>%
                         dplyr::select(Entry, wins, live_wins, live_money, TieBreaker, Team1, Team2, Team3
                                     , Team4, Team5, Team6, Team7, Team8, Team9, Team10,
                                     Team11, Team12, Team13, Team14, Team15, Team16, Team17, Team18, Team19, Team20, Team21, Team22, Team23, Team24 )
@@ -867,7 +872,7 @@ output$fullstandings <- DT::renderDataTable({
                                             22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
                                             ,40, 41,42,43,44,45,46,47,48,49,50,51,52,53,54, 55, 56, 57, 58, 59, 60,61,
                                             62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,80,81,82,83
-                                            ,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103)),
+                                            ,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103, 79)),
           list(orderable = FALSE, className = 'details-control', targets = 1)
         )
       ),
