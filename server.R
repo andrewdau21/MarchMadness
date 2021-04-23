@@ -55,7 +55,7 @@ function(input, output, session) {
   
   espn_season_2018_final <- espn_season_2018 %>%
     
-    
+    #hoist it up
     hoist(
       competitions,
       home_team_id = list("competitors", 1, "id"),
