@@ -1,8 +1,4 @@
 
-#raw_espn_json[["events"]][[3]][["competitions"]][[1]][["situation"]][["lastPlay"]][["probability"]][["homeWinPercentage"]]
-
-
-
 
 
 vars <- reactiveValues(chat=NULL, users=NULL)
@@ -27,45 +23,29 @@ function(input, output, session) {
   
   
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
-  
-  #compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
-  #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210315-20210318')
-  
+ 
+  #you want the date range to span the entire tournament
+  #if that full date range causes issues with API (ie too many rows), then shrink it.
+  #this has to be updated annually
   compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210406&groups=100')
   
-  #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams')
-  
   myfile <- getURL(compiled_url, simplifyVector=FALSE)
-  
-  
+ 
+  #use fromJSON to convert to data frame. 
   raw_espn_json <- fromJSON(myfile)
-  
- # raw_espn_json %>% str(max.level = 1)
-  
-  
-  
+ 
   espn_games_2018 <- raw_espn_json[["events"]] %>% 
     enframe() %>% 
-    #dplyr::rename(row_id = name) %>% 
     mutate(row_id = name) %>%
     select(-name) %>%
     unnest_wider(value) %>% 
     mutate(game_id = id) %>%
     select(-id)
-  #dplyr::rename(game_id = id)
   
   espn_season_2018 <- espn_games_2018 %>% 
     unnest_wider(season) %>% 
     unchop(competitions)
-  
-  
-  
-  #espn_season_2018 %>% 
-  #  select(competitions) %>% 
-  #  slice(1) %>% 
-  #  str(max.level = 5)
-  
-  
+
   ex_id_subset <- espn_season_2018[["competitions"]][[1]][["competitors"]][[1]][["id"]]
   
   ex_id_hoist <- espn_season_2018 %>%
