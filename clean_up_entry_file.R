@@ -1,5 +1,5 @@
 
-entries <- read.csv('./data/test_file3.csv', stringsAsFactors = FALSE)
+entries <- read.csv('./data/raw_selections.csv', stringsAsFactors = FALSE)
 
 library(tidyr)
 library(dplyr)
@@ -35,6 +35,121 @@ cleaned <- entries %>%
   mutate(Team23 = sub(" \\(.*", "", Team23)) %>%
   mutate(Team24 = sub(" \\(.*", "", Team24)) %>%
   dplyr::select(-dummy)
+
+#put fixes here for names
+cleaned <- data.frame(lapply(cleaned, function(x) {
+                    gsub("Michigan St.", "Michigan State", x)
+                   
+                }))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Loyola", "Loyola Chicago", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Colorado St.", "Colorado State", x)
+  
+}))
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("New Mexico St.", "New Mexico St", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("S. Dakota St.", "S Dakota St", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Iowa St.", "Iowa State", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  
+  gsub("San Diego St.", "San Diego State", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("St. Mary's", "Saint Mary's", x)
+  
+}))
+
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Boise St.", "Boise State", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Ohio St.", "Ohio State", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("CS Fullerton", "CSU Fullerton", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Jacksonville St.", "J'Ville St", x)
+  
+}))
+
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Rutgers/Notre Dame", "Notre Dame", x)
+  
+}))
+
+
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Wyoming/Indiana", "Indiana", x)
+  
+}))
+
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Wright St./Bryant", "Wright State", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Murray St.", "Murray State", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("St. Peter's", "Saint Peter's", x)
+  
+}))
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Norfolk St.", "Norfolk State", x)
+  
+}))
+
+
+cleaned <- data.frame(lapply(cleaned, function(x) {
+  gsub("Montana St.", "Montana State", x)
+  
+}))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 master <- read.csv("C:/Users/Andrew/Documents/MarchMadness/mmapp/MarchMadness/Data/all_teams.csv", stringsAsFactors = FALSE)  
 
