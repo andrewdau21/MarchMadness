@@ -54,11 +54,11 @@ ui <- dashboardPage(
               DT::dataTableOutput("fullstandings")   
       ),
       tabItem(tabName = "chat",
-              includeCSS("shinychat.css"),
+              includeCSS("./css/shinychat.css"),
               
               # And custom JavaScript -- just to send a message when a user hits "enter"
               # and automatically scroll the chat window for us. Totally optional.
-              includeScript("sendOnEnter.js"),
+              includeScript("./js/sendOnEnter.js"),
               uiOutput("chat"),
               textInput("entry", ""),
               actionButton("send", "Send"),
