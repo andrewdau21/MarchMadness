@@ -27,7 +27,10 @@ function(input, output, session) {
   #you want the date range to span the entire tournament
   #if that full date range causes issues with API (ie too many rows), then shrink it.
   #this has to be updated annually
-  compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210406&groups=100')
+  #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20220317-20220404&groups=100')
+  compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20230208-20230210&groups=50')
+  
+  #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20220310-20220406')
   
   myfile <- getURL(compiled_url, simplifyVector=FALSE)
  
@@ -69,7 +72,9 @@ function(input, output, session) {
       home_logo = list("competitors",1,"team","logo"),
       away_logo = list("competitors",2,"team","logo"),
       home_prob = list("situation","lastPlay","probability","homeWinPercentage"),
-      venue = list("venue","fullName")
+      venue = list("venue","fullName"),
+      home_team_seed = list("competitors",1,"curatedRank","current"),
+      away_team_seed = list("competitors",2,"curatedRank","current")
       
     ) %>%
     hoist(
@@ -126,6 +131,7 @@ function(input, output, session) {
     mutate(live_wins = home_prob) %>%
     dplyr::select(winner, live_wins)
   
+  lsdat <<- live_scores
   
   live_wins_away <-  live_scores %>%
     filter(current_stat %in% c('In Progress', "Halftime")) %>%
@@ -183,11 +189,14 @@ function(input, output, session) {
   temp_money <- raw_selections_melted %>% left_join(losers, by = c("value"="loser")) 
   
   temp_money2 <- temp_money %>% left_join(master, by=c("value"= "name"))
+  aaa <<- temp_money2
   
   temp_money3 <- temp_money2 %>%
     filter(!is.na(losses)) %>%
     group_by(Entry) %>%
     summarise(dead_money = sum(cost,na.rm=TRUE)) 
+  
+  abc <<- temp_money3
   
   standings_live <- standings_live %>% left_join(temp_money3, by = "Entry") %>%
     replace_na(list(dead_money=0)) %>%
@@ -235,7 +244,9 @@ function(input, output, session) {
     
     #compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date, '&groups=50')
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210316-20210317')
-    compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210319-20210406&groups=100')
+    #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20220310-20220406&groups=100')
+    #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20220310-20220406')
+    compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20230208-20230210&groups=100')
     
     #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams')
     
@@ -293,7 +304,9 @@ function(input, output, session) {
         home_logo = list("competitors",1,"team","logo"),
         away_logo = list("competitors",2,"team","logo"),
         home_prob = list("situation","lastPlay","probability","homeWinPercentage"),
-        venue = list("venue","fullName")
+        venue = list("venue","fullName"),
+        home_team_seed = list("competitors",1,"curatedRank","current"),
+        away_team_seed = list("competitors",2,"curatedRank","current")
         
       ) %>%
       hoist(
@@ -323,7 +336,7 @@ function(input, output, session) {
     live_scores <- espn_season_2018_final %>%
       select(name,short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob, home_team_name, away_team_name) %>%
       mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
-      mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>'))
+      mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) 
     
    # print(live_scores)
     
@@ -448,7 +461,7 @@ function(input, output, session) {
   
   observe({
     # Re-execute this reactive expression after 1000 milliseconds
-    invalidateLater(10000, session)
+    invalidateLater(60000, session)
     if(input$autorefresh==1)
     {
       print("I invalidated!")
@@ -457,22 +470,41 @@ function(input, output, session) {
     # The isolate() makes this observer _not_ get invalidated and re-executed
     # when input$n changes.
     #print("in the invalidator")
+      i = 0
 
 
-
+  exitclause = FALSE
+      while (exitclause == FALSE)
+      {
+        
+        temp_date <- str_remove_all(as.character(Sys.Date()+i), "-")
+        
+        #temp_date <- '20220310'
+        
+        compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date)
+        #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
+        
+        i = i+1
+        
+        #myfile <- getURL(compiled_url)
+        
+        myfile <- getURL(compiled_url, simplifyVector=FALSE)
+        
+        
+        raw_espn_json <- fromJSON(myfile)
+        if(length(raw_espn_json[["events"]]) > 0)
+        {
+          exitclause =TRUE
+        }
+        if (i == 5)
+        {
+          exitclause = TRUE
+        }
+      }
     
-    temp_date <- str_remove_all(as.character(Sys.Date()), "-")
-    temp_date <- '20210405'
     
-    compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date)
-    #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
-    
-    
-    myfile <- getURL(compiled_url, simplifyVector=FALSE)
-    
-    
-    raw_espn_json <- fromJSON(myfile)
-    
+    if(length(raw_espn_json[["events"]]) > 0)
+    {
     raw_espn_json %>% str(max.level = 1)
     
     
@@ -513,14 +545,18 @@ function(input, output, session) {
         competitions,
         home_team_id = list("competitors", 1, "id"),
         home_team_abb = list("competitors", 1, "team", "abbreviation"),
+        home_team_name = list("competitors", 1, "team", "shortDisplayName"),
         away_team_id = list("competitors", 2, "id"),
         away_team_abb = list("competitors", 2, "team", "abbreviation"),
+        away_team_name = list("competitors", 2, "team", "shortDisplayName"),
         home_score = list("competitors", 1, "score"),
         away_score = list("competitors", 2, "score"),
         home_logo = list("competitors",1,"team","logo"),
         away_logo = list("competitors",2,"team","logo"),
         home_prob = list("situation","lastPlay","probability","homeWinPercentage"),
-        venue = list("venue","fullName")
+        venue = list("venue","fullName"),
+        home_team_seed = list("competitors",1,"curatedRank","current"),
+        away_team_seed = list("competitors",2,"curatedRank","current")
         
       ) %>%
       hoist(
@@ -549,9 +585,11 @@ function(input, output, session) {
     # count(season_type) %>%
     
     espn_season_2018_final_final <- espn_season_2018_final %>%
-      select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob,current_time) %>%
-      mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
-      mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
+      select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob,current_time, home_team_seed, away_team_seed) %>%
+      #mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
+      #mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
+      mutate(home_logo = paste0('<div class="container" height = 52 style="width: 60px;"><img src="',home_logo, '" height="52;"  style="width:40;"> <div class="badge">',home_team_seed ,'</div></div>')) %>%
+      mutate(away_logo = paste0('<div class="container2" height = 52 style="width: 60px;"><img src="',away_logo, '" height="52;"  style="width:40;"> <div class="badge2">',away_team_seed ,'</div></div>')) %>%
       mutate(period = ifelse(period == 3, paste0("OT-1"), period)) %>%
       mutate(period = ifelse(period == 4, paste0("OT-2"), period)) %>%
       mutate(period = ifelse(period == 1, paste0(period,"st", " ", time), period)) %>%
@@ -569,9 +607,14 @@ function(input, output, session) {
       #print(temp_data)
 
       #print(espn_season_2018_final)
-
+      values2$df_data_full <- espn_season_2018_final
       values$df_data <- espn_season_2018_final_final
-      
+    }
+    
+    else{
+      values2$df_data_full <- data.frame()
+      values$df_data <- data.frame
+    }
 
       #proxy1 <- DT::dataTableProxy('table')
   #    DT::replaceData(proxy1, espn_season_2018_final_final)
@@ -590,18 +633,44 @@ function(input, output, session) {
   })
   
   
-  
-  temp_date <- str_remove_all(as.character(Sys.Date()), "-")
-  temp_date <- '20210405'
-  
- compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date)
-  #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
-  
-                        
-                       myfile <- getURL(compiled_url, simplifyVector=FALSE)
+                       
+                       i = 0
                        
                        
-                       raw_espn_json <- fromJSON(myfile)
+                       exitclause = FALSE
+                       while (exitclause == FALSE)
+                       {
+                         
+                         temp_date <- str_remove_all(as.character(Sys.Date()+i), "-")
+                         
+                         #temp_date <- '20220310'
+                         
+                         compiled_url <-  paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=500&dates=', temp_date)
+                         #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20210310-20210401&groups=50')
+                         
+                         i = i+1
+                         
+                         #myfile <- getURL(compiled_url)
+                         
+                         myfile <- getURL(compiled_url, simplifyVector=FALSE)
+                         
+                         
+                         raw_espn_json <- fromJSON(myfile)
+                         print(length(raw_espn_json[["events"]]))
+                         if(length(raw_espn_json[["events"]]) > 0)
+                         {
+                           exitclause =TRUE
+                         }
+                         else if (i == 5)
+                         {
+                           exitclause = TRUE
+                         }
+                       }
+                       
+                       
+                       
+                       if (length(raw_espn_json[["events"]]) > 0 )
+                       {
                        
                        raw_espn_json %>% str(max.level = 1)
                        
@@ -643,14 +712,18 @@ function(input, output, session) {
                            competitions,
                            home_team_id = list("competitors", 1, "id"),
                            home_team_abb = list("competitors", 1, "team", "abbreviation"),
+                           home_team_name = list("competitors", 1, "team", "shortDisplayName"),
                            away_team_id = list("competitors", 2, "id"),
                            away_team_abb = list("competitors", 2, "team", "abbreviation"),
+                           away_team_name = list("competitors", 2, "team", "shortDisplayName"),
                            home_score = list("competitors", 1, "score"),
                            away_score = list("competitors", 2, "score"),
                            home_logo = list("competitors",1,"team","logo"),
                            away_logo = list("competitors",2,"team","logo"),
                            home_prob = list("situation","lastPlay","probability","homeWinPercentage"),
-                           venue = list("venue","fullName")
+                           venue = list("venue","fullName"),
+                           home_team_seed = list("competitors",1,"curatedRank","current"),
+                           away_team_seed = list("competitors",2,"curatedRank","current")
                            
                          ) %>%
                          hoist(
@@ -679,9 +752,11 @@ function(input, output, session) {
                        # count(season_type) %>%
                        
                        espn_season_2018_final_final <- espn_season_2018_final %>%
-                         select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob, current_time) %>%
-                         mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
-                         mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
+                         select(short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob, current_time, home_team_seed, away_team_seed) %>%
+                         #mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
+                         mutate(home_logo = paste0('<div class="container" height = 52 style="width: 60px;"><img src="',home_logo, '" height="52;"  style="width:40;"> <div class="badge">',home_team_seed ,'</div></div>')) %>%
+                         mutate(away_logo = paste0('<div class="container2" height = 52 style="width: 60px;"><img src="',away_logo, '" height="52;"  style="width:40;"> <div class="badge2">',away_team_seed ,'</div></div>')) %>%
+                         #mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
                          mutate(period = ifelse(period == 3, paste0("OT-1"), period)) %>%
                          mutate(period = ifelse(period == 4, paste0("OT-2"), period)) %>%
                          mutate(period = ifelse(period == 1, paste0(period,"st", " ", time), period)) %>%
@@ -695,6 +770,13 @@ function(input, output, session) {
                         # dplyr::select(home_score, home_logo, time, period, away_logo, away_score)
                        
                        values <- reactiveValues(df_data =espn_season_2018_final_final)
+                       values2 <- reactiveValues(df_data_full =espn_season_2018_final)
+}
+                       
+                       else{
+                         values <- reactiveValues(df_data =data_frame())
+                         values2 <- reactiveValues(df_data_full =data_frame())
+                       }
                        
 output$fullstandings <- DT::renderDataTable({
                          
@@ -726,17 +808,21 @@ output$fullstandings <- DT::renderDataTable({
  
   output$table <- DT::renderDataTable({
     
+    #tabledata <- values$df_data  
+    #tabledata[1,1]= paste0('<div class="container" height = 52 style="width: 60px;"><img src="https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png" height="52;"  style="width:40;"> <div class="badge">16</div></div>')
+    #tabledata[1,5]= paste0('<div class="container2" height = 52 style="width: 60px;"><img src="https://a.espncdn.com/i/teamlogos/ncaa/500/84.png" height="52;"  style="width:40;"> <div class="badge2">1</div></div>')
+    
       
       DT::datatable(values$df_data, escape=FALSE, colnames = rep("", ncol(values$df_data)),
                     rownames=FALSE,
-                    
+                    selection = "single",
                     options = list(scrollX = TRUE,
                                    autoWidth=TRUE,
                                    bsort=FALSE,
                                    dom='t',
                                    ordering=FALSE,
                                    pageLength = 20,
-                                   columnDefs = list(list(className = 'dt-center', targets = 1:4))
+                                   columnDefs = list(list(className = 'dt-center', targets = 1:3),list(className='dt-left',targets=4))
                                   
                                   ))
     
@@ -745,8 +831,8 @@ output$fullstandings <- DT::renderDataTable({
   
   output$standings <- DT::renderDataTable({
     
-    # standings_temper <<- rv$m %>%
-    #   arrange(desc(wins))
+     standings_temper <<- rv$m %>%
+       arrange(desc(wins))
     
 
     #library(DT)
@@ -852,7 +938,7 @@ output$fullstandings <- DT::renderDataTable({
                                             22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
                                             ,40, 41,42,43,44,45,46,47,48,49,50,51,52,53,54, 55, 56, 57, 58, 59, 60,61,
                                             62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,80,81,82,83
-                                            ,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103, 79)),
+                                            ,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104)),
           list(orderable = FALSE, className = 'details-control', targets = 1)
         )
       ),
@@ -1030,7 +1116,7 @@ output$fullstandings <- DT::renderDataTable({
     }
     isolate({
       # Add the current entry to the chat log.
-      vars$chat <<- c(vars$chat, 
+      vars$chat <-  c(vars$chat, 
                       paste0(linePrefix(),
                              tags$span(class="username",
                                        tags$abbr(title=Sys.time(), sessionVars$username)
@@ -1055,6 +1141,37 @@ output$fullstandings <- DT::renderDataTable({
     HTML(vars$chat)
   })
   
+  selectedRow <- eventReactive(input$table_rows_selected,{
+    row.names(values$df_data)[c(input$table_rows_selected)]
+  })
+  
+  output$selected <- renderText({ 
+    selectedRow()
+  })
+  
+  
+  observeEvent(input$table_rows_selected, {
+    row_number <-  row.names(values2$df_data_full)[c(input$table_rows_selected)]
+    data <- values2$df_data_full[row_number,]
+    home_team_count <- get_count_of_entries_by_team(data$home_team_name)$Count
+    home_team_names <- as.vector(get_names_of_entries_by_team(data$home_team_name)$Entry)
+    away_team_count <- get_count_of_entries_by_team(data$away_team_name)$Count
+    away_team_names <- as.vector(get_names_of_entries_by_team(data$away_team_name)$Entry)
+    print(data)
+    stufftoprint <- paste0("<b>",home_team_count,"</b>", " entries have selected ", "<b>", data$home_team_name, ":</b><br><br>",
+                           toString(home_team_names), "<br><br><b>",away_team_count,"</b>",
+                           " entries have selected ","<b>", data$away_team_name, ":</b><br><br>", 
+                           toString(away_team_names))
+    print(get_names_of_entries_by_team(data$home_team_name))
+    
+    #stufftoprint <- paste0(data$name)
+    showModal(modalDialog(
+      title = data$name,
+      HTML(stufftoprint),
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  })
   
   
 

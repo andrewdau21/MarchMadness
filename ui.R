@@ -1,20 +1,5 @@
-
-ui <- fluidPage(
-
-fluidPage(
-  titlePanel("Salary Cap Madness 2021"),
-  
-  sidebarLayout(
-    sidebarPanel("Under Construction"),
-    mainPanel(DT::dataTableOutput("standings"))
-  )
-  
- 
-  )
-)
-
 ui <- dashboardPage(
-  dashboardHeader(title="Salary Cap Madness 2021"),
+  dashboardHeader(title="Salary Cap Madness 2023"),
  
   
   dashboardSidebar(
@@ -24,7 +9,7 @@ ui <- dashboardPage(
       menuItem("Chat", tabName="chat", icon =icon("comments") ),
       radioButtons("autorefresh", label = h3("Auto Refresh"),
                    choices = list("On - 1 Minute" = 1, "Off" = 2), 
-                   selected = 1)
+                   selected = 2)
     )
   ),
   dashboardBody(
@@ -50,7 +35,9 @@ ui <- dashboardPage(
                     width=8,
                     align = "center",
                     collapsible=TRUE,
-                    DT::dataTableOutput("table")    ))),
+                    DT::dataTableOutput("table")    )),
+                #textOutput("selected")
+              ),
                 # box(title = "Standings Chart", 
                 #     status="primary", 
                 #     solidHeader = TRUE,
