@@ -25,54 +25,43 @@ function(input, output, session) {
   
   keep_alive <- shiny::reactiveTimer(intervalMs = 10000, 
                                      session = shiny::getDefaultReactiveDomain())
-  
   shiny::observe({keep_alive()})
   
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
  
+  #build the data for the standings table
   rv <- reactiveValues(m=standings_function())
   
-                      
-                       values <- reactiveValues(df_data = as.data.frame(live_scores_function()[[1]]))
-                       values2 <- reactiveValues(df_data_full = as.data.frame(live_scores_function()[[2]]))
+  #build the data for the live scores table                   
+  values <- reactiveValues(df_data = as.data.frame(live_scores_function()[[1]]))
+  values2 <- reactiveValues(df_data_full = as.data.frame(live_scores_function()[[2]]))
                        
                        
-output$fullstandings <- DT::renderDataTable(server=FALSE,{
+  output$fullstandings <- DT::renderDataTable(server=FALSE,{
+                                  temp_table_standings <- rv$m  %>%
+                                  dplyr::select(Entry, wins, live_wins, live_money, TieBreaker, Team1, Team2, Team3
+                                                , Team4, Team5, Team6, Team7, Team8, Team9, Team10,
+                                                Team11, Team12, Team13, Team14, Team15, Team16, Team17, Team18, Team19, Team20, Team21, Team22, Team23, Team24 )
                          
-                      temp_table_standings <- rv$m  %>%
-                        dplyr::select(Entry, wins, live_wins, live_money, TieBreaker, Team1, Team2, Team3
-                                    , Team4, Team5, Team6, Team7, Team8, Team9, Team10,
-                                    Team11, Team12, Team13, Team14, Team15, Team16, Team17, Team18, Team19, Team20, Team21, Team22, Team23, Team24 )
-                         
-                         DT::datatable(temp_table_standings, escape=FALSE, 
+                                   DT::datatable(temp_table_standings, escape=FALSE, 
                                        rownames=FALSE,
                                        extensions = 'FixedColumns',
-                                       
                                        options = list(scrollX = TRUE,
                                                       autoWidth=TRUE,
                                                       pageLength = 100,
                                                       fixedColumns=TRUE
                                                      
-                                                      #columnDefs = list(list(targets = 7,visible=TRUE))
-                                                      
-                                       ))# %>% 
-#                           formatStyle('Team1',backgroundColor = styleEqual(c("Gonzaga","Ohio State"), c('gray', 'yellow'))) %>%
- #                          formatStyle('Team2',backgroundColor = styleEqual(c("Gonzaga","Ohio State"), c('gray', 'yellow')))
-                  
-                         
-                       }
-                       )
+                                                      )
+                                       )
+                      
+                                   }
+                                  )
                        
   
  
   output$table <- DT::renderDataTable(server=FALSE,{
     
-    #tabledata <- values$df_data  
-    #tabledata[1,1]= paste0('<div class="container" height = 52 style="width: 60px;"><img src="https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png" height="52;"  style="width:40;"> <div class="badge">16</div></div>')
-    #tabledata[1,5]= paste0('<div class="container2" height = 52 style="width: 60px;"><img src="https://a.espncdn.com/i/teamlogos/ncaa/500/84.png" height="52;"  style="width:40;"> <div class="badge2">1</div></div>')
-    
-      
-      DT::datatable(values$df_data, escape=FALSE, colnames = rep("", ncol(values$df_data)),
+        DT::datatable(values$df_data, escape=FALSE, colnames = rep("", ncol(values$df_data)),
                     rownames=FALSE,
                     selection = "single",
                     options = list(scrollX = TRUE,
