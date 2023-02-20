@@ -778,7 +778,7 @@ function(input, output, session) {
                          values2 <- reactiveValues(df_data_full =data_frame())
                        }
                        
-output$fullstandings <- DT::renderDataTable({
+output$fullstandings <- DT::renderDataTable(server=FALSE,{
                          
                       temp_table_standings <- rv$m  %>%
                         dplyr::select(Entry, wins, live_wins, live_money, TieBreaker, Team1, Team2, Team3
@@ -806,7 +806,7 @@ output$fullstandings <- DT::renderDataTable({
                        
   
  
-  output$table <- DT::renderDataTable({
+  output$table <- DT::renderDataTable(server=FALSE,{
     
     #tabledata <- values$df_data  
     #tabledata[1,1]= paste0('<div class="container" height = 52 style="width: 60px;"><img src="https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png" height="52;"  style="width:40;"> <div class="badge">16</div></div>')
@@ -829,7 +829,7 @@ output$fullstandings <- DT::renderDataTable({
    }
   )
   
-  output$standings <- DT::renderDataTable({
+  output$standings <- DT::renderDataTable(server=FALSE,{
     
      standings_temper <<- rv$m %>%
        arrange(desc(wins))
@@ -1010,7 +1010,7 @@ output$fullstandings <- DT::renderDataTable({
   })
   
   
-  output$picks <- DT::renderDataTable({
+  output$picks <- DT::renderDataTable(server=FALSE,{
     
     raw_selections <- raw_selections %>%
       select(-IP_address, -Email)
