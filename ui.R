@@ -2,7 +2,7 @@ ui <- dashboardPage(
   dashboardHeader(title="Salary Cap Madness 2023"),
  
   
-  dashboardSidebar(
+  dashboardSidebar(collapsed = TRUE,
     sidebarMenu(
       menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard")),
       menuItem("Full Standings", tabName = "scoreboard", icon = icon("th")),
