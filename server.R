@@ -1,5 +1,7 @@
-
-
+#TODO
+# Add configuration file to control tourney start/end date.  
+# Make all elements of the appication dynamic...ie number of teams in any entry.  This should clean up the JS callback in DT below.
+# Clearly define all necessary inputs.  /Data has some extrenuous data.
 
 vars <- reactiveValues(chat=NULL, users=NULL)
 # Restore the chat log from the last session.
@@ -24,17 +26,12 @@ function(input, output, session) {
   
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
  
-  #you want the date range to span the entire tournament
-  #if that full date range causes issues with API (ie too many rows), then shrink it.
-  #this has to be updated annually
+
   #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20220317-20220404&groups=100')
   compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20230208-20230210&groups=50')
   
-  #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20220310-20220406')
-  
   myfile <- getURL(compiled_url, simplifyVector=FALSE)
  
-  #use fromJSON to convert to data frame. 
   raw_espn_json <- fromJSON(myfile)
  
   espn_games_2018 <- raw_espn_json[["events"]] %>% 
@@ -237,7 +234,7 @@ function(input, output, session) {
   observe({
     # Re-execute this reactive expression after 1000 milliseconds
     invalidateLater(10000, session)
-    if (input$autorefresh==1)
+    if (autorefresh==1)
     {
     
     temp_date <- str_remove_all(as.character(Sys.Date()), "-")
@@ -462,7 +459,7 @@ function(input, output, session) {
   observe({
     # Re-execute this reactive expression after 1000 milliseconds
     invalidateLater(60000, session)
-    if(input$autorefresh==1)
+    if(autorefresh==1)
     {
       print("I invalidated!")
 
@@ -778,7 +775,7 @@ function(input, output, session) {
                          values2 <- reactiveValues(df_data_full =data_frame())
                        }
                        
-output$fullstandings <- DT::renderDataTable({
+output$fullstandings <- DT::renderDataTable(server=FALSE,{
                          
                       temp_table_standings <- rv$m  %>%
                         dplyr::select(Entry, wins, live_wins, live_money, TieBreaker, Team1, Team2, Team3
@@ -806,7 +803,7 @@ output$fullstandings <- DT::renderDataTable({
                        
   
  
-  output$table <- DT::renderDataTable({
+  output$table <- DT::renderDataTable(server=FALSE,{
     
     #tabledata <- values$df_data  
     #tabledata[1,1]= paste0('<div class="container" height = 52 style="width: 60px;"><img src="https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png" height="52;"  style="width:40;"> <div class="badge">16</div></div>')
@@ -829,7 +826,7 @@ output$fullstandings <- DT::renderDataTable({
    }
   )
   
-  output$standings <- DT::renderDataTable({
+  output$standings <- DT::renderDataTable(server=FALSE,{
     
      standings_temper <<- rv$m %>%
        arrange(desc(wins))
@@ -1010,7 +1007,7 @@ output$fullstandings <- DT::renderDataTable({
   })
   
   
-  output$picks <- DT::renderDataTable({
+  output$picks <- DT::renderDataTable(server=FALSE,{
     
     raw_selections <- raw_selections %>%
       select(-IP_address, -Email)
