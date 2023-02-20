@@ -12,7 +12,7 @@ on:
         required: true
 #2
 env:
-  REGISTRY: "registry.digitalocean.com/daucontainerregistry/marchcapness"
+  REGISTRY: "registry.digitalocean.com/daucontainerregistry"
   IMAGE_NAME: "marchcapness"
 
 #3
