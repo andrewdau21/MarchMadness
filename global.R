@@ -22,7 +22,7 @@ raw_selections_long <- raw_selections %>% select(Entry, Team1, Team2, Team3, Tea
 #standings <- read.csv("./Data/scores_temp.csv")
 #standings <- standings %>% arrange(desc(Score))
 master <- read.csv("./Data/all_teams.csv", stringsAsFactors = FALSE)  
-tiebreaker <- read.csv("./Data/raw_selections.csv") %>% mutate(Entry = Your.Name.) %>% mutate(TieBreaker = as.integer(Total.Points.In.The.National.Title.Game..used.as.tiebreaker..)) %>% select(Entry, TieBreaker)
+#tiebreaker <- read.csv("./Data/raw_selections.csv") %>% mutate(Entry = Your.Name.) %>% mutate(TieBreaker = as.integer(Total.Points.In.The.National.Title.Game..used.as.tiebreaker..)) %>% select(Entry, TieBreaker)
 #tiebreaker <- read.csv("./Data/tiebreaker_master.csv", stringsAsFactors=FALSE)
 
 autorefresh <- 2
