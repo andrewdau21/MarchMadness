@@ -207,9 +207,13 @@ cleaned <- cleaned %>%
   
   
   
+
 #all_teams <-tidyr::gather(cleaned) %>% filter(key != "Entry") %>% filter(!is.na(value))
 #all_teams_list <- unique(all_teams$value)
 #write.csv(all_teams_list, "C:/Users/Andrew/Documents/MarchMadness/mmapp/MarchMadness/Data/all_teams_raw.csv")
 
-write.csv(cleaned, "C:/Users/Andrew/Documents/MarchMadness/mmapp/MarchMadness/Data/raw_selections_real.csv")
+write.csv(cleaned, "./Data/raw_selections_real.csv")
  
+tiebreaker <- entries %>% mutate(Entry = Your.Name.) %>% mutate(TieBreaker = as.integer(Total.Points.In.The.National.Title.Game..used.as.tiebreaker..)) %>% select(Entry, TieBreaker)
+
+write.csv(tiebreaker, "./Data/tiebreaker.csv")
