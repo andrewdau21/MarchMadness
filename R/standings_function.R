@@ -1,6 +1,6 @@
 
 standings_function <- function(){
-compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20230219-20230223&groups=50')
+compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20230301-20230303&groups=50')
 
 myfile <- getURL(compiled_url, simplifyVector=FALSE)
 
@@ -40,7 +40,7 @@ espn_season_2018_final <- espn_season_2018 %>%
     away_score = list("competitors", 2, "score"),
     home_logo = list("competitors",1,"team","logo"),
     away_logo = list("competitors",2,"team","logo"),
-    home_prob = list("situation","lastPlay","probability","homeWinPercentage"),
+    #home_prob = list("situation","lastPlay","probability","homeWinPercentage"),
     venue = list("venue","fullName"),
     home_team_seed = list("competitors",1,"curatedRank","current"),
     away_team_seed = list("competitors",2,"curatedRank","current")
@@ -67,6 +67,21 @@ espn_season_2018_final <- espn_season_2018 %>%
     )
   )
 
+
+#AAAA <<- espn_season_2018_final
+current_games <- espn_season_2018_final %>%
+  filter(current_stat == "In Progress") %>% select(game_id)
+if(nrow(current_games > 0 ))
+{
+temp <-  live_wins_function(current_games)
+
+
+espn_season_2018_final <- espn_season_2018_final %>% left_join(temp, by="game_id")
+}
+else
+{
+  espn_season_2018_final$home_prob = NA
+}
 #espn_season_2018_final %>% 
 # count(season_type) %>%
 
