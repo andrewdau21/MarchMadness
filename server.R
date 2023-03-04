@@ -23,9 +23,17 @@ linePrefix <- function(){
 
 function(input, output, session) {
   
-  keep_alive <- shiny::reactiveTimer(intervalMs = 10000, 
-                                     session = shiny::getDefaultReactiveDomain())
-  shiny::observe({keep_alive()})
+  #keep_alive <- shiny::reactiveTimer(intervalMs = 10000, 
+   #                                  session = shiny::getDefaultReactiveDomain())
+#  shiny::observe({keep_alive()})
+  
+  data <- reactivePoll(10000, session,
+                       # This function returns the time that log_file was last modified
+                       checkFunc = function() {
+                         #print("i'm alive")
+                       }
+                      
+  )
   
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
  
