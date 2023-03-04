@@ -4,7 +4,6 @@
 #this has to be updated annually
 #compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20220315-20220404&groups=100')
 
-compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20230125-20230206')
 
 library(httr)
 library(purrr)
@@ -20,7 +19,48 @@ df <- map_dfr(full_teams, as.data.frame) %>%
 
 write.csv(df, './data/allteams2023.csv', row.names=FALSE)
 
-work <- fromJSON(content)
+df <- map_dfr(full_teams, as.data.frame) %>%
+  select(team.id, team.shortDisplayName) %>%
+  dplyr::rename(team1 = team.id) %>%
+  dplyr::rename(name = team.shortDisplayName ) %>%
+  dplyr::mutate(team2 = team1
+                ,team3 = team1
+                ,team4 = team1
+                ,team5 = team1
+                ,team6 = team1
+                ,team7 = team1
+                ,team8 = team1
+                ,team9 = team1
+                ,team10 = team1
+                ,team11 = team1
+                ,team12 = team1
+                ,team13 = team1
+                ,team14 = team1
+                ,team15 = team1
+                ,team16 = team1
+                ,team17 = team1
+                ,team18 = team1
+                ,team19 = team1
+                ,team20 = team1
+                ,team21 = team1
+                ,team22 = team1
+                ,team23 = team1
+                ,team24 = team1
+                                )
+
+#need to add cost...based on seed.
+
+
+write.csv(df, './Data/all_teams.csv', row.names=FALSE)
+
+
+
+compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20220315-20220404&groups=100')
+
+myfile <- getURL(compiled_url)
+#content <- content(myfile)
+
+#work <- fromJSON(content)
 
 #use fromJSON to convert to data frame. 
 raw_espn_json <- fromJSON(myfile) 
