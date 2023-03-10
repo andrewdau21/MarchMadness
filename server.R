@@ -69,6 +69,8 @@ function(input, output, session) {
  
   output$table <- DT::renderDataTable(server=FALSE,{
     
+      
+    
         DT::datatable(values$df_data, escape=FALSE, colnames = rep("", ncol(values$df_data)),
                     rownames=FALSE,
                     selection = "single",
@@ -87,7 +89,7 @@ function(input, output, session) {
   
   output$standings <- DT::renderDataTable(server=FALSE,{
     
-     standings_temper <<- rv$m %>%
+     standings_temper <- rv$m %>%
        arrange(desc(wins))
     
 
