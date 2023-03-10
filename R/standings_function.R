@@ -115,7 +115,7 @@ live_wins_home <- live_scores %>%
   mutate(live_wins = home_prob) %>%
   dplyr::select(winner, live_wins)
 
-lsdat <<- live_scores
+lsdat <- live_scores
 
 live_wins_away <-  live_scores %>%
   filter(current_stat %in% c('In Progress', "Halftime")) %>%
@@ -173,14 +173,14 @@ losers$loser <- as.character(losers$loser)
 temp_money <- raw_selections_melted %>% left_join(losers, by = c("value"="loser")) 
 
 temp_money2 <- temp_money %>% left_join(master, by=c("value"= "name"))
-aaa <<- temp_money2
+#aaa <<- temp_money2
 
 temp_money3 <- temp_money2 %>%
   filter(!is.na(losses)) %>%
   group_by(Entry) %>%
   summarise(dead_money = sum(cost,na.rm=TRUE)) 
 
-abc <<- temp_money3
+#abc <<- temp_money3
 
 standings_live <- standings_live %>% left_join(temp_money3, by = "Entry") %>%
   replace_na(list(dead_money=0)) %>%

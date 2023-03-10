@@ -3,7 +3,7 @@
 
 live_wins_function <- function(games){
   td <- data.frame()
-  GGG <<- games
+  #GGG <<- games
   for(i in 1:length(games$game_id) )
   {
     #print(i)
