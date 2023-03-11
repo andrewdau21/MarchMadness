@@ -137,7 +137,8 @@ if (length(raw_espn_json[["events"]]) > 0 )
   # dplyr::select(home_score, home_logo, time, period, away_logo, away_score)
   
   values <- espn_season_2018_final_final %>% mutate(sort_var = ifelse(period == 'Final', 1,0)) %>% arrange(sort_var) %>% select(-sort_var)
-  values2 <- espn_season_2018_final
+  values2 <- espn_season_2018_final %>% mutate(sort_var = ifelse(current_stat == 'Final', 1,0)) %>% arrange(sort_var) %>% select(-sort_var)
+  
 }
 
 else{
