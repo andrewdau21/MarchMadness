@@ -70,7 +70,9 @@ espn_season_2018_final <- espn_season_2018 %>%
 
 #AAAA <<- espn_season_2018_final
 current_games <- espn_season_2018_final %>%
-  filter(current_stat == "In Progress") %>% select(game_id)
+  filter(current_stat != "Final") %>% 
+  filter(current_stat != 'Scheduled') %>%
+  select(game_id)
 if(nrow(current_games > 0 ))
 {
 temp <-  live_wins_function(current_games)
