@@ -67,13 +67,13 @@ espn_season_2018_final <- espn_season_2018 %>%
 
 library(dplyr)
 ranks_home <- espn_season_2018_final %>%
-  select(home_team_name, home_team_seed) %>%
-  dplyr::rename(team_name = home_team_name)%>%
+  select(home_team_id, home_team_seed) %>%
+  dplyr::rename(team1 = home_team_id)%>%
   dplyr::rename(seed = home_team_seed )
 
 ranks_away <- espn_season_2018_final %>%
-  select(away_team_name, away_team_seed) %>%
-  dplyr::rename(team_name = away_team_name)%>%
+  select(away_team_id, away_team_seed) %>%
+  dplyr::rename(team1 = away_team_id)%>%
   dplyr::rename(seed = away_team_seed )
 
 all_ranks <- dplyr::bind_rows(ranks_home, ranks_away) %>% filter(seed != 99)
