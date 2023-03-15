@@ -175,7 +175,7 @@ losers$loser <- as.character(losers$loser)
 temp_money <- raw_selections_melted %>% left_join(losers, by = c("value"="loser")) 
 
 temp_money2 <- temp_money %>% left_join(master, by=c("value"= "name"))
-#aaa <<- temp_money2
+aaa <<- temp_money2
 
 temp_money3 <- temp_money2 %>%
   filter(!is.na(losses)) %>%

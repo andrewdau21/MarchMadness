@@ -76,6 +76,24 @@ ranks_away <- espn_season_2018_final %>%
   dplyr::rename(team1 = away_team_id)%>%
   dplyr::rename(seed = away_team_seed )
 
-all_ranks <- dplyr::bind_rows(ranks_home, ranks_away) %>% filter(seed != 99)
+all_ranks <- dplyr::bind_rows(ranks_home, ranks_away) %>% filter(seed != 99) %>%
+  mutate(cost = case_when(
+    seed == 1  ~ 25,
+    seed == 2 ~ 19,
+    seed == 3 ~ 13,
+    seed == 4 ~ 12,
+    seed == 5 ~ 11,
+    seed == 6 ~ 10,
+    seed == 7 ~ 8,
+    seed == 8 ~ 5,
+    seed == 9 ~ 5,
+    seed == 10 ~ 4,
+    seed == 11 ~ 4,
+    seed == 12 ~ 3,
+    seed == 13 ~ 2,
+    seed == 14 ~ 2,
+    seed == 15 ~ 1,
+    seed == 16 ~ 1
+  ))
 
 ##put on rank values, merge to all_ranks
