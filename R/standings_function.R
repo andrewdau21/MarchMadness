@@ -1,6 +1,6 @@
 
 standings_function <- function(){
-compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20230307-20230313&groups=50')
+compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20230313-20230408&groups=500')
 
 myfile <- getURL(compiled_url, simplifyVector=FALSE)
 
@@ -175,7 +175,7 @@ losers$loser <- as.character(losers$loser)
 temp_money <- raw_selections_melted %>% left_join(losers, by = c("value"="loser")) 
 
 temp_money2 <- temp_money %>% left_join(master, by=c("value"= "name"))
-#aaa <<- temp_money2
+aaa <<- temp_money2
 
 temp_money3 <- temp_money2 %>%
   filter(!is.na(losses)) %>%

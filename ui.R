@@ -1,5 +1,5 @@
 ui <- dashboardPage(
-  dashboardHeader(title="Salary Cap Madness 2023"),
+  dashboardHeader(title="March Capness 2023"),
  
   
   dashboardSidebar(collapsed = TRUE,

@@ -50,8 +50,10 @@ df <- map_dfr(full_teams, as.data.frame) %>%
 
 #need to add cost...based on seed.
 
+df2 <- df %>% left_join(all_ranks, by = 'team1')
 
-write.csv(df, './Data/all_teams.csv', row.names=FALSE)
+
+write.csv(df2, './Data/all_teams.csv', row.names=FALSE)
 
 
 
