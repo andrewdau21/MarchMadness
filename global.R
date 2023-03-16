@@ -17,7 +17,7 @@ library(sqldf)
 Sys.setenv(TZ='US/Pacific')
 
 raw_selections <- read.csv("./Data/raw_selections_real_test.csv")
-raw_selections_long <- raw_selections %>% select(Entry, Team1, Team2, Team3, Team4, Team5, Team6, Team7, Team8, Team9, Team10, Team11, Team12, Team13, Team14, Team15, Team16) %>%
+raw_selections_long <- raw_selections %>% select(Entry, Team1, Team2, Team3, Team4, Team5, Team6, Team7, Team8, Team9, Team10, Team11, Team12, Team13, Team14, Team15, Team16, Team17, Team18, Team19, Team20, Team21, Team22, Team23, Team24) %>%
   pivot_longer(!Entry, names_to = "teamgroup", values_to = "Team") %>% filter(!is.na(Team))
 #standings <- read.csv("./Data/scores_temp.csv")
 #standings <- standings %>% arrange(desc(Score))
