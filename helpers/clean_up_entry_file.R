@@ -1,5 +1,5 @@
 
-entries <- read.csv('./DoNotCommit/TEST_raw_sections_real.csv', stringsAsFactors = FALSE)
+entries <- read.csv('./DoNotCommit/raw_selections_real_2023.csv', stringsAsFactors = FALSE)
 
 library(tidyr)
 library(dplyr)
