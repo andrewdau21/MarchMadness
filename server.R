@@ -44,6 +44,8 @@ function(input, output, session) {
   values <- reactiveValues(df_data = as.data.frame(live_scores_function()[[1]]))
   values2 <- reactiveValues(df_data_full = as.data.frame(live_scores_function()[[2]]))
                        
+  #abc<<-as.data.frame(live_scores_function()[[1]])
+  #abc2<<- as.data.frame(live_scores_function()[[2]])
                        
   output$fullstandings <- DT::renderDataTable(server=FALSE,{
                                   temp_table_standings <- rv$m  %>%
