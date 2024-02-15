@@ -2,6 +2,7 @@
 # Add configuration file to control tourney start/end date.  
 # Make all elements of the appication dynamic...ie number of teams in any entry.  This should clean up the JS callback in DT below.
 # Clearly define all necessary inputs.  /Data has some extrenuous data.
+#
 
 vars <- reactiveValues(chat=NULL, users=NULL)
 # Restore the chat log from the last session.
