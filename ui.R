@@ -1,6 +1,29 @@
+
+header_img <- tags$img(
+  src='salbot.jpeg',
+  style = 'height: 50px; width: 50px; position: absolute; left: 50%; transform: translateX(-50%);'
+)
+header <-  htmltools::tagQuery(dashboardHeader(title = "March Capness 2024"))
+header <- header$
+  addAttrs(style = "position: relative")$ # add some styles to the header 
+  find(".navbar.navbar-static-top")$ # find the header right side
+  append(header_img)$ # inject our img
+  allTags()
+
 ui <- dashboardPage(
-  dashboardHeader(title="March Capness 2024"),
- 
+ #dashboardHeader(title="March Capness 2024"),
+ header,
+  #dashboardHeader(title = tags$img(src='salbot.jpeg', height='60', width='50'),
+   #                              'March Capness 2024'),
+  # dashboardHeader(title = tags$a(href='https://www.google.com',
+  #                                tags$img(src='salbot.jpeg', height = '60', width ='60'),
+  #                                'March Capness 2024')),
+  # 
+  # dashboardHeader(title = span(img(src = "salbot.jpeg", height = 35), "March Capness 2024")),
+  #dashboardHeader(title=span(tags$img(src='salbot.jpeg'))),
+  #dashboardHeader(title = tags$a("March Capness 2024", img(src="salbot.jpeg", height = 50, align = "right"))),
+
+
   
   dashboardSidebar(collapsed = TRUE,
     sidebarMenu(
@@ -15,7 +38,7 @@ ui <- dashboardPage(
   dashboardBody(
     tags$head( 
       tags$style(HTML("a {color: black}")), HTML("<base target='_blank'>") ,
-      tags$link(rel="shortcut icon", href="basketball.jpg"),),
+      tags$link(rel="shortcut icon", href="salbot.jpeg"),),
     tabItems(
       # First tab content
       tabItem(tabName = "leaderboard",
