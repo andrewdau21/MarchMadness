@@ -36,3 +36,8 @@ The application is currently deployed on Digital Ocean using their container reg
 
 ## Running the app yourself.
 This is a completely self contained application.  
+
+## Annual Setup
+1. Get file from Paul
+2. Run clean_up_entry_file.R
+3. Update the dates in the API calls standings_function.R

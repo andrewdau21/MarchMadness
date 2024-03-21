@@ -17,7 +17,7 @@ full_teams <- content[["sports"]][[1]][["leagues"]][[1]][["teams"]]
 df <- map_dfr(full_teams, as.data.frame) %>%
   select(team.id, team.shortDisplayName)
 
-write.csv(df, './data/allteams2023.csv', row.names=FALSE)
+write.csv(df, './data/allteams2024.csv', row.names=FALSE)
 
 df <- map_dfr(full_teams, as.data.frame) %>%
   select(team.id, team.shortDisplayName) %>%
