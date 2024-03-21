@@ -172,6 +172,8 @@ losers <- rbind(losers, uncontested_losers)
 
 losers$loser <- as.character(losers$loser)
 
+kickitout <<- losers
+
 temp_money <- raw_selections_melted %>% left_join(losers, by = c("value"="loser")) 
 
 temp_money2 <- temp_money %>% left_join(master, by=c("value"= "name"))
