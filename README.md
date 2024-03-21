@@ -39,5 +39,8 @@ This is a completely self contained application.
 
 ## Annual Setup
 1. Get file from Paul
-2. Run clean_up_entry_file.R
-3. Update the dates in the API calls standings_function.R
+2. Clean up file from Paul (remove first four team losers and any weird characters)
+3. Run build master rank values with updated dates for API
+4. Run build master teams
+5. Run clean_up_entry_file
+6. Update the dates in the API calls standings_function.R

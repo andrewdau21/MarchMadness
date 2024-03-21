@@ -1,111 +1,109 @@
 "","Entry","TieBreaker"
-"1","Paul Schulz",144
-"2","Taylor Y",138
-"3","Andy Godoshian",149
-"4","Dan Gordon",145
-"5","Tim Miller",141
-"6","Neil B.",150
-"7","Rvonstein",160
-"8","Ty Stevenson (Ty Dolla$)",129
-"9","Ryan Isaacson",183
-"10","Joel Dembowski",148
-"11","Ryan Alverson",131
-"12","Patrick Sullivan",141
+"1","Aaron Simms 2",166
+"2","Andy Godoshian",149
+"3","Pete A",139
+"4","Allan",145
+"5","Andrew Mahler",139
+"6","Alex",154
+"7","Andrew Dau",132
+"8","Anthony Siciliano",146
+"9","Austin Sankey",148
+"10","Andy Stone",158
+"11","ICY HOT",149
+"12","Peanut Wrigley",140
 "13","Bryan Fegert",156
-"14","Jeff Fechter",161
-"15","Jeff Timmer",150
-"16","Jacob Evans",155
-"17","Hawk",157
-"18","ICY HOT",149
-"19","Blake Wright",163
-"20","Josh bailey",140
-"21","Jimmy Lutz",161
-"22","Frank J.",154
-"23","Andrew Mahler",139
-"24","Bill Heagie",149
-"25","Ryan",147
-"26","Derek Rothhaar",135
-"27","Mark Koch",142
-"28","Kels Lovegreen",138
-"29","Cindy Hegie",156
-"30","Josh McNulty",141
-"31","KC Vaughan",148
-"32","Hawk",157
-"33","Marc Vander Velde",143
-"34","Dennis Bond",151
-"35","Tom Jenkins",151
-"36","John Dvorak",155
-"37","Jes Smith",130
-"38","Amanda Dau",171
-"39","Drew",162
-"40","Alex",154
-"41","Matthew Alexis",145
-"42","Scott Witeby",144
-"43","Ben Wrigley",142
-"44","Peanut Wrigley",140
-"45","Michael Peterson",151
-"46","Aaron Simms 2",166
-"47","Dan Reese",146
-"48","Mike Reese",158
-"49","Andrew Dau",132
-"50","Kevin Bloem",141
-"51","TravisT",156
-"52","Pat Sinicropi",135
-"53","Kyle Stratton",159
-"54","Jordan Kennedy",167
-"55","Michael Cauchi",155
-"56","Connor Murphy",148
-"57","Tony Palazzo",142
-"58","Dan Bockheim",153
-"59","David Rieckhoff",159
-"60","Matt Isola",145
-"61","Pete A",139
-"62","Dom DeNooyer",147
-"63","Dom DeNooyer",147
-"64","Jared DeWar",155
-"65","Jared Jacobi",182
-"66","Mike Borowka",143
-"67","Anthony Siciliano",146
-"68","Marcus M",143
-"69","Mike Tobin",141
-"70","Dan Young",151
-"71","Brian Florek",149
-"72","Matt Imielski",147
-"73","Kraig",135
-"74","Jim W",158
-"75","Austin Sankey",148
-"76","Dan Rieckhoff",138
-"77","Scott Hagley",152
-"78","Jordan Popiel",152
-"79","Bryan van wingen",135
-"80","Matthieu Goddeyne",155
-"81","Jack Clarke",155
-"82","Michael Barbour",157
-"83","Ben Kroft",147
-"84","Evan Schulz",136
-"85","Parth Patel",156
-"86","David Burggraaf",145
-"87","Marc Dembowski",163
-"88","Mike Easdale",155
-"89","Matt Taylor",145
-"90","Neil Richards",140
-"91","Andy Stone",158
-"92","Mark Slater",151
-"93","Nick girard",146
-"94","Kyle Jenks",154
-"95","Eric Jenks",162
-"96","Duston Pope",139
-"97","Eric Habermas",143
-"98","Allan",145
-"99","John Richards",130
-"100","Danny Doherty",155
-"101","Tony Grant",161
-"102","John Boyless",147
-"103","Brian Rieckhoff",69
-"104","Paul Spearman",155
-"105","Brett Habermas",135
-"106","Mike Taylor",158
-"107","Dave Childers",144
-"108","Ben Rupp",145
-"109","Dan Chambers",143
-"110","Tony Sinicropi",164
+"14","Brett Habermas",135
+"15","Bill Heagie",149
+"16","Neil B.",150
+"17","Blake Wright",163
+"18","Dennis Bond",151
+"19","Mike Borowka",143
+"20","Brian Florek",149
+"21","Ben Rupp",145
+"22","Bryan van wingen",135
+"23","Ben Wrigley",142
+"24","Dave Childers",144
+"25","Cindy Hegie",156
+"26","Connor Murphy",148
+"27","Dan Rieckhoff",138
+"28","Dan Bockheim",153
+"29","Danny Doherty",155
+"30","Dan Reese",146
+"31","David Rieckhoff",159
+"32","David Burggraaf",145
+"33","Dan Gordon",145
+"34","Dom DeNooyer",147
+"35","Amanda Dau",171
+"36","Dan Chambers",143
+"37","Duston Pope",139
+"38","Derek Rothhaar",135
+"39","Mike Easdale",155
+"40","Eric Habermas",143
+"41","Evan Schulz",136
+"42","Jeff Fechter",161
+"43","Jacob Evans",155
+"44","Jared Jacobi",182
+"45","Josh bailey",140
+"46","John Boyless",147
+"47","Jack Clarke",155
+"48","John Richards",130
+"49","Jeff Timmer",150
+"50","Eric Jenks",162
+"51","Kyle Jenks",154
+"52","John Dvorak",155
+"53","Frank J.",154
+"54","Jordan Popiel",152
+"55","Josh McNulty",141
+"56","Jared DeWar",155
+"57","Kels Lovegreen",138
+"58","Jordan Kennedy",167
+"59","Hawk",157
+"60","Drew",162
+"61","Kraig",135
+"62","Ben Kroft",147
+"63","Kyle Stratton",159
+"64","Jimmy Lutz",161
+"65","Marc Dembowski",163
+"66","Marc Vander Velde",143
+"67","Marcus M",143
+"68","Mark Slater",151
+"69","Mark Koch",142
+"70","Mike Taylor",158
+"71","Matthieu Goddeyne",155
+"72","Matt Isola",145
+"73","Matthew Alexis",145
+"74","Matt Imielski",147
+"75","Michael Cauchi",155
+"76","Mike Reese",158
+"77","Michael Peterson",151
+"78","Michael Barbour",157
+"79","Matt Taylor",145
+"80","Kevin Bloem",141
+"81","Neil Richards",140
+"82","Nick girard",146
+"83","Parth Patel",156
+"84","Pat Sinicropi",135
+"85","Joel Dembowski",148
+"86","Paul Schulz",144
+"87","Brian Rieckhoff",69
+"88","Ryan",147
+"89","Ryan Alverson",131
+"90","Rvonstein",160
+"91","Ryan Isaacson",183
+"92","Scott Witeby",144
+"93","Tony Sinicropi",164
+"94","Jes Smith",130
+"95","Paul Spearman",155
+"96","Scott Hagley",152
+"97","Patrick Sullivan",141
+"98","Taylor Y",138
+"99","Tom Jenkins",151
+"100","Tim Miller",141
+"101","Mike Tobin",141
+"102","Tony Grant",161
+"103","Tony Palazzo",142
+"104","TravisT",156
+"105","Ty Stevenson (Ty Dolla$)",129
+"106","KC Vaughan",148
+"107","Jim W",158
+"108","Dan Young",151
