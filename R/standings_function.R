@@ -92,14 +92,18 @@ live_scores <- espn_season_2018_final %>%
   mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
   mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>'))
 
+#live_scores2 <<- live_scores
+
 #print(live_scores)
 
 #calc final wins.
 
 wins <- live_scores %>%
   filter(current_stat == 'Final') %>%
-  mutate(winner = ifelse(home_score > away_score, home_team_name, away_team_name))%>%
+  mutate(winner = ifelse(as.numeric(home_score) > as.numeric(away_score), home_team_name, away_team_name))%>%
   count(winner, name="wins")
+
+#wins2 <<- wins
 
 uncontested_wins <-  live_scores %>%
   filter(current_stat == 'Uncontested') %>%
