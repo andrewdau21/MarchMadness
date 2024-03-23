@@ -90,7 +90,9 @@ else
 live_scores <- espn_season_2018_final %>%
   select(name,short_name,home_prob, away_team_abb, away_score,home_team_abb, home_score,time, period,home_logo, away_logo, current_stat,home_prob, home_team_name, away_team_name) %>%
   mutate(home_logo = paste0('<img src="',home_logo,'" height="52"></img>')) %>%
-  mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>'))
+  mutate(away_logo = paste0('<img src="',away_logo,'" height="52"></img>')) %>%
+  mutate(home_score = as.numeric(home_score)) %>%
+  mutate(away_score = as.numeric(away_score))
 
 #live_scores2 <<- live_scores
 
