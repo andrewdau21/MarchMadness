@@ -23,6 +23,18 @@ ui <- fluidPage(
   useShinyjs(),
   titlePanel("March Madness Team Selector"),
   
+  # Add custom CSS for highlighting
+  tags$head(
+    tags$style(HTML("
+      .team-highlighted {
+        background-color: #e6ffe6; /* Light green background */
+        font-weight: bold;
+        padding: 2px 5px;
+        border-radius: 3px;
+      }
+    "))
+  ),
+  
   fluidRow(
     column(6, offset = 3,
            h4("Select Your Teams (Max $100)"),
@@ -49,8 +61,8 @@ ui <- fluidPage(
              textOutput("warning"),
              hr(),
              numericInput("tiebreaker", 
-                          "Tiebreaker: Combined points in National Championship game:", 
-                          value = NULL, min = 0, max = 500, step = 1),
+                         "Tiebreaker: Combined points in National Championship game:", 
+                         value = NULL, min = 0, max = 500, step = 1),
              textOutput("tiebreaker_warning"),
              hr(),
              actionButton("submit", "Submit Entry", 
@@ -148,6 +160,22 @@ server <- function(input, output, session) {
     }
   })
   
+  # JavaScript to highlight selected teams
+  observe({
+    runjs("
+      // Get all checkbox inputs
+      var checkboxes = document.querySelectorAll('#selected_teams input[type=\"checkbox\"]');
+      checkboxes.forEach(function(checkbox) {
+        var label = checkbox.nextElementSibling;
+        if (checkbox.checked) {
+          label.classList.add('team-highlighted');
+        } else {
+          label.classList.remove('team-highlighted');
+        }
+      });
+    ")
+  })
+  
   # Submission
   observeEvent(input$submit, {
     if(total_cost() > 100) {
@@ -182,31 +210,71 @@ server <- function(input, output, session) {
         entry_id = entry_id,
         email = input$email,
         total_dollars = total_cost(),
-        tiebreaker_points = input$tiebreaker,  # Add tiebreaker to totals
+        tiebreaker_points = input$tiebreaker,
         submission_time = Sys.time()
       )
       dbWriteTable(con, "submission_totals", totals, append = TRUE, row.names = FALSE)
       
-      # Email receipt
-      selected_teams_text <- paste(input$selected_teams, collapse = "\n")
-      email_body <- paste(
-        "Hi ", input$entry_name, ",\n\n",
-        "Thank you for submitting your March Madness Team Selector entry! Here’s your receipt:\n\n",
-        "Entry ID: ", entry_id, "\n",
-        "Selected Teams:\n", selected_teams_text, "\n",
-        "Total Cost: $", total_cost(), "\n",
-        "Tiebreaker (Combined Championship Points): ", input$tiebreaker, "\n\n",
-        "Good luck in the tournament!\n",
-        "Contact Paul Schulz if you need to modify your entry.\n\n",
-        "Best,\nThe March Madness Team",
-        sep = ""
+      # Prepare data for email table
+      selected_teams_df <- teams %>% 
+        filter(team_name %in% input$selected_teams) %>%
+        select(Team = team_name, Seed = seed, Cost = cost)
+      
+      # Generate HTML table rows
+      table_rows <- paste0(
+        "<tr>",
+        "<td style='padding: 8px; border: 1px solid #ddd;'>", selected_teams_df$Team, "</td>",
+        "<td style='padding: 8px; border: 1px solid #ddd; text-align: center;'>", selected_teams_df$Seed, "</td>",
+        "<td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>$", selected_teams_df$Cost, "</td>",
+        "</tr>",
+        collapse = ""
       )
       
+      # HTML email body
+      email_body <- paste0(
+        "<!DOCTYPE html>",
+        "<html>",
+        "<head><style>",
+        "body { font-family: Arial, sans-serif; color: #333; }",
+        "h1 { color: #4CAF50; }",
+        ".container { max-width: 600px; margin: 0 auto; padding: 20px; }",
+        "table { width: 100%; border-collapse: collapse; margin: 20px 0; }",
+        "th, td { padding: 8px; border: 1px solid #ddd; }",
+        "th { background-color: #f2f2f2; }",
+        ".footer { font-size: 12px; color: #777; text-align: center; }",
+        "</style></head>",
+        "<body>",
+        "<div class='container'>",
+        "<h1>March Capness 2025 - Your Entry is In!</h1>",
+        "<p>Hi ", input$entry_name, ",</p>",
+        "<p>Thanks for joining the madness! Your entry is locked and loaded. Here’s the rundown:</p>",
+        "<p><strong>Entry ID:</strong> ", entry_id, "</p>",
+        "<h3>Your Selected Teams:</h3>",
+        "<table>",
+        "<tr>",
+        "<th>Team</th><th>Seed</th><th>Cost</th>",
+        "</tr>",
+        table_rows,
+        "</table>",
+        "<p><strong>Total Cost:</strong> $", total_cost(), " / $100</p>",
+        "<p><strong>Tiebreaker (Championship Points):</strong> ", input$tiebreaker, "</p>",
+        "<p>Good luck in the tournament! May your picks be sharp and your bracket victorious.</p>",
+        "<p>Need to tweak your entry? Contact Paul Schulz.</p>",
+        "<div class='footer'>",
+        "Best,<br>The March Madness Team<br>",
+        "Let the games begin!",
+        "</div>",
+        "</div>",
+        "</body>",
+        "</html>"
+      )
+      
+      # Send HTML email
       email <- envelope(
         to = input$email,
         from = "Sal Arycap",
-        subject = "2025 March Capness Entry",
-        text = email_body
+        subject = "2025 March Capness Entry - Let’s Get Bracket-tastic!",
+        html = email_body
       )
       
       smtp <- emayili::server(
@@ -220,7 +288,7 @@ server <- function(input, output, session) {
       
       showModal(modalDialog(
         title = "Success",
-        paste("Your entry has been submitted! Entry ID:", entry_id, "A receipt has been emailed to you."),
+        paste("Your entry has been submitted! Entry ID:", entry_id, "A fancy receipt has been emailed to you."),
         easyClose = TRUE
       ))
       
