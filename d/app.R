@@ -23,14 +23,14 @@ ui <- fluidPage(
   useShinyjs(),
   titlePanel("March Madness Team Selector"),
   
-  # Add custom CSS for highlighting
+  # Custom CSS for highlighting
   tags$head(
     tags$style(HTML("
       .team-highlighted {
-        background-color: #e6ffe6; /* Light green background */
-        font-weight: bold;
-        padding: 2px 5px;
-        border-radius: 3px;
+        background-color: #e6ffe6 !important; /* Light green background */
+        font-weight: bold !important;
+        padding: 2px 5px !important;
+        border-radius: 3px !important;
       }
     "))
   ),
@@ -61,8 +61,8 @@ ui <- fluidPage(
              textOutput("warning"),
              hr(),
              numericInput("tiebreaker", 
-                         "Tiebreaker: Combined points in National Championship game:", 
-                         value = NULL, min = 0, max = 500, step = 1),
+                          "Tiebreaker: Combined points in National Championship game:", 
+                          value = NULL, min = 0, max = 500, step = 1),
              textOutput("tiebreaker_warning"),
              hr(),
              actionButton("submit", "Submit Entry", 
@@ -76,7 +76,44 @@ ui <- fluidPage(
               Typical winning total: ~22 wins. Tiebreaker: Combined points in championship game."
            )
     )
-  )
+  ),
+  
+  # Add JavaScript to handle checkbox highlighting
+  tags$script(HTML("
+    $(document).ready(function() {
+      console.log('Document ready - Initializing highlighting');
+      
+      function updateHighlighting() {
+        console.log('Updating highlighting...');
+        $('#selected_teams .checkbox').each(function() {
+          var checkbox = $(this).find('input[type=\"checkbox\"]');
+          var label = $(this).find('label');
+          var checkboxValue = checkbox.attr('value');
+          
+          if (checkbox.length > 0 && label.length > 0) {
+            if (checkbox.is(':checked')) {
+              label.addClass('team-highlighted');
+              console.log('Highlighted: ' + label.text() + ' (Value: ' + checkboxValue + ')');
+            } else {
+              label.removeClass('team-highlighted');
+              console.log('Unhighlighted: ' + label.text() + ' (Value: ' + checkboxValue + ')');
+            }
+          } else {
+            console.log('Checkbox or label not found in .checkbox div for value: ' + checkboxValue);
+          }
+        });
+      }
+      
+      // Initial call after a delay
+      setTimeout(updateHighlighting, 500);
+      
+      // Listen for changes
+      $('#selected_teams').on('change', 'input[type=\"checkbox\"]', function() {
+        console.log('Checkbox changed: ' + $(this).attr('value'));
+        updateHighlighting();
+      });
+    });
+  "))
 )
 
 server <- function(input, output, session) {
@@ -158,22 +195,6 @@ server <- function(input, output, session) {
     } else {
       ""
     }
-  })
-  
-  # JavaScript to highlight selected teams
-  observe({
-    runjs("
-      // Get all checkbox inputs
-      var checkboxes = document.querySelectorAll('#selected_teams input[type=\"checkbox\"]');
-      checkboxes.forEach(function(checkbox) {
-        var label = checkbox.nextElementSibling;
-        if (checkbox.checked) {
-          label.classList.add('team-highlighted');
-        } else {
-          label.classList.remove('team-highlighted');
-        }
-      });
-    ")
   })
   
   # Submission
