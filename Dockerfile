@@ -2,7 +2,7 @@ FROM rocker/tidyverse:4.2.1
  
 RUN R -e 'install.packages("shiny")'
 RUN R -e 'install.packages("RCurl")'
-RUN R -e "install.packages( c('rjson', 'janitor', 'tibble', 'tidyr', 'dplyr', 'DT', 'stringr', 'shinydashboard','shinycssloaders', 'formattable','plotly','reshape', 'RSQLite', 'sqldf' ), repos='http://cran.rstudio.com/')"
+RUN R -e "install.packages( c('rjson', 'janitor', 'tibble', 'tidyr', 'dplyr', 'DT', 'stringr', 'shinydashboard','shinycssloaders', 'formattable','plotly','reshape', 'RSQLite', 'sqldf','RPostgres','uuid','shinyjs','emayili' ), repos='http://cran.rstudio.com/')"
 
 
  
