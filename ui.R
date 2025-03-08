@@ -41,7 +41,7 @@ ui <- dashboardPage(
     tags$head( 
       tags$style(HTML("a {color: black}")), HTML("<base target='_blank'>") ,
       tags$link(rel="shortcut icon", href="salbot.jpeg"),),
-    tabItems(
+     tabItems(
       tabItem(tabName = "entry",
               tags$head(
                 tags$style(HTML("
@@ -53,7 +53,7 @@ ui <- dashboardPage(
       }
     "))
               ),
-              
+
               fluidRow(
                 column(6, offset = 3,
                        h4("Select Your Teams (Max $100)"),
@@ -65,11 +65,11 @@ ui <- dashboardPage(
                          textOutput("email_warning"),
                          br(),
                          div(style = "column-count: 2; -webkit-column-count: 2; -moz-column-count: 2; column-gap: 20px;",
-                             checkboxGroupInput("selected_teams", 
+                             checkboxGroupInput("selected_teams",
                                                 "Choose teams:",
-                                                choices = setNames(teams$team_name, 
-                                                                   paste(teams$team_name, 
-                                                                         "(Seed:", teams$seed, 
+                                                choices = setNames(teams$team_name,
+                                                                   paste(teams$team_name,
+                                                                         "(Seed:", teams$seed,
                                                                          "- $", teams$cost, ")")),
                                                 selected = NULL,
                                                 inline = FALSE)
@@ -79,36 +79,36 @@ ui <- dashboardPage(
                          textOutput("total_cost"),
                          textOutput("warning"),
                          hr(),
-                         numericInput("tiebreaker", 
-                                      "Tiebreaker: Combined points in National Championship game:", 
+                         numericInput("tiebreaker",
+                                      "Tiebreaker: Combined points in National Championship game:",
                                       value = NULL, min = 0, max = 500, step = 1),
                          textOutput("tiebreaker_warning"),
                          hr(),
-                         actionButton("submit", "Submit Entry", 
+                         actionButton("submit", "Submit Entry",
                                       style = "background-color: #4CAF50; color: white;",
                                       disabled = TRUE)
                        ),
                        br(),
                        div(
                          style = "text-align: center;",
-                         "Scoring: Total wins in main 63-game tournament (First Four excluded). 
+                         "Scoring: Total wins in main 63-game tournament (First Four excluded).
               Typical winning total: ~22 wins. Tiebreaker: Combined points in championship game."
                        )
                 )
               ),
-              
+
               # Add JavaScript to handle checkbox highlighting
               tags$script(HTML("
     $(document).ready(function() {
       console.log('Document ready - Initializing highlighting');
-      
+
       function updateHighlighting() {
         console.log('Updating highlighting...');
         $('#selected_teams .checkbox').each(function() {
           var checkbox = $(this).find('input[type=\"checkbox\"]');
           var label = $(this).find('label');
           var checkboxValue = checkbox.attr('value');
-          
+
           if (checkbox.length > 0 && label.length > 0) {
             if (checkbox.is(':checked')) {
               label.addClass('team-highlighted');
@@ -122,10 +122,10 @@ ui <- dashboardPage(
           }
         });
       }
-      
+
       // Initial call after a delay
       setTimeout(updateHighlighting, 500);
-      
+
       // Listen for changes
       $('#selected_teams').on('change', 'input[type=\"checkbox\"]', function() {
         console.log('Checkbox changed: ' + $(this).attr('value'));
