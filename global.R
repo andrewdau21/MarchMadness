@@ -13,6 +13,11 @@ library(formattable)
 library(plotly)
 library(reshape)
 library(sqldf)
+library(RPostgres)
+library(uuid)
+library(shinyjs)
+library(emayili)
+
 
 Sys.setenv(TZ='US/Pacific')
 
@@ -27,3 +32,18 @@ tiebreaker <- read.csv("./Data/tiebreaker_test.csv", stringsAsFactors = FALSE)
 #tiebreaker <- read.csv("./Data/tiebreaker_master.csv", stringsAsFactors=FALSE)
 
 autorefresh <- 2
+
+
+
+# Database connection
+con <- dbConnect(
+  RPostgres::Postgres(),
+  host = Sys.getenv('host'),
+  port = Sys.getenv('port'),
+  dbname = Sys.getenv('dbname'),
+  user = Sys.getenv('user'),
+  password = Sys.getenv('password')
+)
+
+# Get teams data from database
+teams <- dbGetQuery(con, "SELECT team_name, seed, cost FROM march_madness_teams") %>% arrange(seed)

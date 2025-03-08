@@ -27,6 +27,7 @@ ui <- dashboardPage(
   
   dashboardSidebar(collapsed = TRUE,
     sidebarMenu(
+      menuItem("Entry Form", tabName = "entry", icon = icon("table")),
       menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard")),
       menuItem("Full Standings", tabName = "scoreboard", icon = icon("th"))#,
       #menuItem("Chat", tabName="chat", icon =icon("comments") )
@@ -36,10 +37,103 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+    useShinyjs(),
     tags$head( 
       tags$style(HTML("a {color: black}")), HTML("<base target='_blank'>") ,
       tags$link(rel="shortcut icon", href="salbot.jpeg"),),
-    tabItems(
+     tabItems(
+      tabItem(tabName = "entry",
+              tags$head(
+                tags$style(HTML("
+      .team-highlighted {
+        background-color: #e6ffe6 !important; /* Light green background */
+        font-weight: bold !important;
+        padding: 2px 5px !important;
+        border-radius: 3px !important;
+      }
+    "))
+              ),
+
+              fluidRow(
+                column(6, offset = 3,
+                       h4("Select Your Teams (Max $100)"),
+                       wellPanel(
+                         textInput("entry_name", "Entry Name:", ""),
+                         textOutput("name_warning"),
+                         br(),
+                         textInput("email", "Email Address:", ""),
+                         textOutput("email_warning"),
+                         br(),
+                         div(style = "column-count: 2; -webkit-column-count: 2; -moz-column-count: 2; column-gap: 20px;",
+                             checkboxGroupInput("selected_teams",
+                                                "Choose teams:",
+                                                choices = setNames(teams$team_name,
+                                                                   paste(teams$team_name,
+                                                                         "(Seed:", teams$seed,
+                                                                         "- $", teams$cost, ")")),
+                                                selected = NULL,
+                                                inline = FALSE)
+                         ),
+                         hr(),
+                         h4("Current Selection:"),
+                         textOutput("total_cost"),
+                         textOutput("warning"),
+                         hr(),
+                         numericInput("tiebreaker",
+                                      "Tiebreaker: Combined points in National Championship game:",
+                                      value = NULL, min = 0, max = 500, step = 1),
+                         textOutput("tiebreaker_warning"),
+                         hr(),
+                         actionButton("submit", "Submit Entry",
+                                      style = "background-color: #4CAF50; color: white;",
+                                      disabled = TRUE)
+                       ),
+                       br(),
+                       div(
+                         style = "text-align: center;",
+                         "Scoring: Total wins in main 63-game tournament (First Four excluded).
+              Typical winning total: ~22 wins. Tiebreaker: Combined points in championship game."
+                       )
+                )
+              ),
+
+              # Add JavaScript to handle checkbox highlighting
+              tags$script(HTML("
+    $(document).ready(function() {
+      console.log('Document ready - Initializing highlighting');
+
+      function updateHighlighting() {
+        console.log('Updating highlighting...');
+        $('#selected_teams .checkbox').each(function() {
+          var checkbox = $(this).find('input[type=\"checkbox\"]');
+          var label = $(this).find('label');
+          var checkboxValue = checkbox.attr('value');
+
+          if (checkbox.length > 0 && label.length > 0) {
+            if (checkbox.is(':checked')) {
+              label.addClass('team-highlighted');
+              console.log('Highlighted: ' + label.text() + ' (Value: ' + checkboxValue + ')');
+            } else {
+              label.removeClass('team-highlighted');
+              console.log('Unhighlighted: ' + label.text() + ' (Value: ' + checkboxValue + ')');
+            }
+          } else {
+            console.log('Checkbox or label not found in .checkbox div for value: ' + checkboxValue);
+          }
+        });
+      }
+
+      // Initial call after a delay
+      setTimeout(updateHighlighting, 500);
+
+      // Listen for changes
+      $('#selected_teams').on('change', 'input[type=\"checkbox\"]', function() {
+        console.log('Checkbox changed: ' + $(this).attr('value'));
+        updateHighlighting();
+      });
+    });
+  "))
+      ),
       # First tab content
       tabItem(tabName = "leaderboard",
               fluidRow(
