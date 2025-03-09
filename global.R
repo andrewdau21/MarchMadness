@@ -28,8 +28,8 @@ Sys.setenv(TZ='US/Pacific')
 
 #standings <- read.csv("./Data/scores_temp.csv")
 #standings <- standings %>% arrange(desc(Score))
-master <- read.csv("./Data/all_teams.csv", stringsAsFactors = FALSE)  
-tiebreaker2 <- read.csv("./Data/tiebreaker_test.csv", stringsAsFactors = FALSE)  
+#master <- read.csv("./Data/all_teams.csv", stringsAsFactors = FALSE)  
+#tiebreaker2 <- read.csv("./Data/tiebreaker_test.csv", stringsAsFactors = FALSE)  
 #tiebreaker <- read.csv("./Data/raw_selections.csv") %>% mutate(Entry = Your.Name.) %>% mutate(TieBreaker = as.integer(Total.Points.In.The.National.Title.Game..used.as.tiebreaker..)) %>% select(Entry, TieBreaker)
 #tiebreaker <- read.csv("./Data/tiebreaker_master.csv", stringsAsFactors=FALSE)
 
@@ -62,8 +62,12 @@ raw_selections_long <- dbGetQuery(con, "SELECT entry_name as Entry, team_name as
    select(X, Entry, TieBreaker)
 #so weird that this was breaking without row index.  Probably need to fix that.
 
- raw_selections<- dbGetQuery(con, "SELECT * FROM submissions_wide_view")  %>%
-   select(-Entry) %>%
-   dplyr::rename(Entry = Entry_Name) %>%
+ raw_selections<- dbGetQuery(con, "SELECT * FROM bracket_entries5")  %>%
+  # select(-Entry) %>%
+   dplyr::rename(X = entry_id) %>%
+  # dplyr::rename(Entry = Entry_Name) %>%
    mutate (X = row_number()) 
+ 
+ 
+master<- dbGetQuery(con, "SELECT * FROM all_teams")  
  
