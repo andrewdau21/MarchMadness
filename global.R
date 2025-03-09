@@ -21,7 +21,7 @@ library(emayili)
 
 Sys.setenv(TZ='US/Pacific')
 
-raw_selections <- read.csv("./Data/raw_selections_real_test.csv")
+#raw_selections <- read.csv("./Data/raw_selections_real_test.csv")
 # raw_selections_long <- raw_selections %>% select(Entry, Team1, Team2, Team3, Team4, Team5, Team6, Team7, Team8, Team9, Team10, Team11, Team12, Team13, Team14, Team15, Team16, Team17, Team18, Team19, Team20, Team21, Team22, Team23, Team24) %>%
 #   pivot_longer(!Entry, names_to = "teamgroup", values_to = "Team") %>% filter(!is.na(Team))
 
@@ -61,4 +61,9 @@ raw_selections_long <- dbGetQuery(con, "SELECT entry_name as Entry, team_name as
    mutate (X = row_number()) %>% 
    select(X, Entry, TieBreaker)
 #so weird that this was breaking without row index.  Probably need to fix that.
+
+ raw_selections<- dbGetQuery(con, "SELECT * FROM submissions_wide_view")  %>%
+   select(-Entry) %>%
+   dplyr::rename(Entry = Entry_Name) %>%
+   mutate (X = row_number()) 
  
