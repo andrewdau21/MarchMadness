@@ -40,7 +40,8 @@ function(input, output, session) {
   temp_date <- str_remove_all(as.character(Sys.Date()), "-")
  
   #build the data for the standings table
-  rv <- reactiveValues(m=standings_function())
+  if(nrow(tiebreaker) > 0){
+  rv <- reactiveValues(m=standings_function())}
 
   #build the data for the live scores table                   
   values <- reactiveValues(df_data = as.data.frame(live_scores_function()[[1]]))
