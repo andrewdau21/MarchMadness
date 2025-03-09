@@ -41,7 +41,7 @@ function(input, output, session) {
  
   #build the data for the standings table
   rv <- reactiveValues(m=standings_function())
-  
+
   #build the data for the live scores table                   
   values <- reactiveValues(df_data = as.data.frame(live_scores_function()[[1]]))
   values2 <- reactiveValues(df_data_full = as.data.frame(live_scores_function()[[2]]))
@@ -271,21 +271,21 @@ function(input, output, session) {
     
   })
   
-  
-  output$picks <- DT::renderDataTable(server=FALSE,{
-    
-    raw_selections <- raw_selections %>%
-      select(-IP_address, -Email)
-    DT::datatable(raw_selections,extensions = 'Buttons',
-                  options = list(scrollX = TRUE,
-                                 pageLength = 100, info = FALSE,
-                                 dom = 'frtipB', 
-                                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
-                                 ))
-  }
-  )
-  
-  
+  # 
+  # output$picks <- DT::renderDataTable(server=FALSE,{
+  #   
+  #   raw_selections <- raw_selections %>%
+  #     select(-IP_address, -Email)
+  #   DT::datatable(raw_selections,extensions = 'Buttons',
+  #                 options = list(scrollX = TRUE,
+  #                                pageLength = 100, info = FALSE,
+  #                                dom = 'frtipB', 
+  #                                buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  #                                ))
+  # }
+  # )
+  # 
+  # 
   
   
   observeEvent(input$picks_rows_selected, {
@@ -550,7 +550,8 @@ function(input, output, session) {
         email = input$email,
         total_dollars = total_cost(),
         tiebreaker_points = input$tiebreaker,
-        submission_time = Sys.time()
+        submission_time = Sys.time(),
+        entry_name = input$entry_name
       )
       dbWriteTable(con, "submission_totals", totals, append = TRUE, row.names = FALSE)
       
