@@ -452,16 +452,16 @@ function(input, output, session) {
   })
   
   # IP check on page load
-  observe({
-    if(ip_exists()) {
-      showModal(modalDialog(
-        title = "Duplicate Entry Detected",
-        "This IP address already has an entry. Creating another will result in a duplicate. 
-         Please contact Paul Schulz to delete your original entry if needed.",
-        easyClose = TRUE
-      ))
-    }
-  })
+  # observe({
+  #   if(ip_exists()) {
+  #     showModal(modalDialog(
+  #       title = "Duplicate Entry Detected",
+  #       "This IP address already has an entry. Creating another will result in a duplicate. 
+  #        Please contact Paul Schulz to delete your original entry if needed.",
+  #       easyClose = TRUE
+  #     ))
+  #   }
+  # })
   
   # Real-time validation for name, email, and tiebreaker
   output$name_warning <- renderText({
