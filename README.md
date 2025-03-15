@@ -1,6 +1,6 @@
 # March Capness  
 
-THIS README IS ACTIVELY UNDER CONSTRUCTION.  IT WILL BE COMPLETE BEFORE TOURNAMENT DEPLOYMENT.   
+THIS README IS ACTIVELY UNDER CONSTRUCTION.  IT WILL BE COMPLETE BEFORE TOURNAMENT DEPLOYMENT.    
 
 This application provides the scoring and UI display for the annual March Madness Salary Cap Tournament.
 
