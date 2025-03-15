@@ -452,17 +452,17 @@ function(input, output, session) {
   })
   
   # IP check on page load
-  # observe({
-  #   if(ip_exists()) {
-  #     showModal(modalDialog(
-  #       title = "Duplicate Entry Detected",
-  #       "This IP address already has an entry. Creating another will result in a duplicate. 
-  #        Please contact Paul Schulz to delete your original entry if needed.",
-  #       easyClose = TRUE
-  #     ))
-  #   }
-  # })
-  
+  observe({
+    if(ip_exists()) {
+      showModal(modalDialog(
+        title = "Duplicate Entry Detected",
+        "This IP address already has an entry. Creating another may result in a duplicate entry.  If multiple people are submitting from the same IP, this error can be ignored.
+         Please contact Paul Schulz to delete your original entry if needed.",
+        easyClose = TRUE
+      ))
+    }
+  })
+
   # Real-time validation for name, email, and tiebreaker
   output$name_warning <- renderText({
     if(nchar(input$entry_name) == 0) "Please enter an entry name." else ""
@@ -531,6 +531,9 @@ function(input, output, session) {
         easyClose = TRUE
       ))
     } else {
+     # shinyjs::show("loading")
+      
+      withProgress(message = 'Submitting Entry...', value = 0, {
       entry_id <- UUIDgenerate()
       
       submission <- teams %>% 
@@ -543,6 +546,8 @@ function(input, output, session) {
           ip_address = ip_address(),
           submission_time = Sys.time()
         )
+      
+      incProgress(0.2, detail = "Saving submission to database...")
       
       dbWriteTable(con, "submissions", submission, append = TRUE, row.names = FALSE)
       
@@ -571,6 +576,7 @@ function(input, output, session) {
         collapse = ""
       )
       
+      incProgress(0.5, detail = "Preparing email...")
       # HTML email body
       email_body <- paste0(
         "<!DOCTYPE html>",
@@ -609,10 +615,10 @@ function(input, output, session) {
         "</body>",
         "</html>"
       )
-      
+      incProgress(0.8, detail = "Sending email...")
       # Send HTML email
       email <- envelope(
-        to = input$email,
+        to = c(input$email, 'ncaasalarycap@gmail.com'),
         from = "Sal Arycap",
         subject = "2025 March Capness Entry - Let’s Get Bracket-tastic!",
         html = email_body
@@ -627,6 +633,8 @@ function(input, output, session) {
       
       smtp(email, verbose = TRUE)
       
+      incProgress(1.0, detail = "Done!")
+      })
       showModal(modalDialog(
         title = "Success",
         paste("Your entry has been submitted! Entry ID:", entry_id, "A fancy receipt has been emailed to you."),
@@ -637,6 +645,7 @@ function(input, output, session) {
       updateTextInput(session, "email", value = "")
       updateCheckboxGroupInput(session, "selected_teams", selected = character(0))
       updateNumericInput(session, "tiebreaker", value = NULL)
+      shinyjs::hide("loading")
     }
   })
   

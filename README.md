@@ -48,3 +48,4 @@ This is a completely self contained application.
 
 ## Annual Setup Updates
 1. Run build_march_madness_teams_db_table.R.  This will pull all teams from ESPN and create a list to be used by the app.  You will have to update the API call for appropriate date.
+2. For entries, make sure the entry page is active on the UI.  Turn off other components.  Truncate both submission tables.  Turn on the IP check in server.
