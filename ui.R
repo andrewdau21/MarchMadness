@@ -27,9 +27,9 @@ ui <- dashboardPage(
   
   dashboardSidebar(collapsed = TRUE,
     sidebarMenu(
-      #menuItem("Entry Form", tabName = "entry", icon = icon("table"))
-      menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard"))
-      ,menuItem("Full Standings", tabName = "scoreboard", icon = icon("th"))#,
+      menuItem("Entry Form", tabName = "entry", icon = icon("table"))
+      #menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard"))
+      #,menuItem("Full Standings", tabName = "scoreboard", icon = icon("th"))#,
       #menuItem("Chat", tabName="chat", icon =icon("comments") )
       #,radioButtons("autorefresh", label = h3("Auto Refresh"),
       #             choices = list("On - 1 Minute" = 1, "Off" = 2), 
@@ -38,6 +38,27 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     useShinyjs(),
+    div(id = "loading", style = "display: none;", 
+        "Sending email... ", 
+        tags$span(class = "spinner")
+    ),
+    
+    # Add some CSS for the spinner
+    tags$style(HTML("
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-top: 2px solid #333;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+")),
     tags$head( 
       tags$style(HTML("a {color: black}")), HTML("<base target='_blank'>") ,
       tags$link(rel="shortcut icon", href="salbot.jpeg"),),
