@@ -645,7 +645,8 @@ function(input, output, session) {
       updateTextInput(session, "email", value = "")
       updateCheckboxGroupInput(session, "selected_teams", selected = character(0))
       updateNumericInput(session, "tiebreaker", value = NULL)
-      shinyjs::hide("loading")
+      shinyjs::runjs("$('#selected_teams .checkbox label').removeClass('team-highlighted');")
+      #shinyjs::hide("loading")
     }
   })
   
