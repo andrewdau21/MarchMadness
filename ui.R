@@ -25,7 +25,7 @@ ui <- dashboardPage(
 
 
   
-  dashboardSidebar(collapsed = TRUE,
+  dashboardSidebar(collapsed = TRUE, 
     sidebarMenu(
       #menuItem("Entry Form", tabName = "entry", icon = icon("table"))
       menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard"))
