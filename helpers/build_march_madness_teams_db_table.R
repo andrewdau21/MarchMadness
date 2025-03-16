@@ -1,4 +1,12 @@
-compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20240317-20240323&groups=500')
+library(httr)
+library(RCurl)
+library(jsonlite)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(purrr)
+library(tibble)
+compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20250318-20250321&groups=500')
 
 myfile <- getURL(compiled_url, simplifyVector=FALSE)
 
