@@ -1,6 +1,6 @@
 
 standings_function <- function(){
-compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20250319-20250414&groups=500')
+compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20250320-20250414&groups=500')
 
 myfile <- getURL(compiled_url, simplifyVector=FALSE)
 
@@ -184,13 +184,15 @@ temp_money <- raw_selections_melted %>% left_join(losers, by = c("value"="loser"
 aaa <<- temp_money
 temp_money2 <- temp_money %>% left_join(master, by=c("value"= "name"))
 
+abcde <<- temp_money2
+
 
 temp_money3 <- temp_money2 %>%
   filter(!is.na(losses)) %>%
   group_by(Entry) %>%
   summarise(dead_money = sum(cost,na.rm=TRUE)) 
 
-#abc <<- temp_money3
+abcd <<- temp_money3
 
 standings_live <- standings_live %>% left_join(temp_money3, by = "Entry") %>%
   replace_na(list(dead_money=0)) %>%
@@ -220,7 +222,7 @@ standings_live <- standings_live %>% left_join(temp_money3, by = "Entry") %>%
   mutate(loser23 = ifelse(Team23 %in% as.vector(losers$loser), .1, 1)) %>%
   mutate(loser24 = ifelse(Team24 %in% as.vector(losers$loser), .1, 1)) 
 
-
+abc <<- standings_live
 standings_live <-standings_live %>% left_join(tiebreaker, by=c("Entry"))
 
 return(standings_live)
