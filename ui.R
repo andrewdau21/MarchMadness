@@ -27,9 +27,9 @@ ui <- dashboardPage(
   
   dashboardSidebar(collapsed = TRUE, 
     sidebarMenu(
-      menuItem("Entry Form", tabName = "entry", icon = icon("table"))
-      #menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard"))
-      #,menuItem("Full Standings", tabName = "scoreboard", icon = icon("th"))#,
+      #menuItem("Entry Form", tabName = "entry", icon = icon("table"))
+      menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard"))
+      ,menuItem("Full Standings", tabName = "scoreboard", icon = icon("th"))#,
       #menuItem("Chat", tabName="chat", icon =icon("comments") )
       #,radioButtons("autorefresh", label = h3("Auto Refresh"),
       #             choices = list("On - 1 Minute" = 1, "Off" = 2), 
