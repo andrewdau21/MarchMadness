@@ -69,5 +69,5 @@ raw_selections_long <- dbGetQuery(con, "SELECT entry_name as Entry, team_name as
    mutate (X = row_number()) 
  
  
-master<- dbGetQuery(con, "SELECT * FROM all_teams")  
+master<- dbGetQuery(con, "SELECT DISTINCT * FROM all_teams")  
  
