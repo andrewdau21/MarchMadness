@@ -3,10 +3,18 @@
 .RData
 .Ruserdata
 .Renviron
+## R / RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+*.Rproj
+
+# Application artifacts and local configs
+chat.Rds
 chatOLD.Rds
 rsconnect/
-dockercommands
+dockercommands/
 DoNotCommit/
 README.html
-.Rproj'
-MarchMadness.Rproj
