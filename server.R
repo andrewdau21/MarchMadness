@@ -24,6 +24,15 @@ linePrefix <- function(){
 
 
 function(input, output, session) {
+  # Load small, session-scoped tables that may change during runtime.
+  # Moving `tiebreaker` here avoids forcing a full app restart when the
+  # underlying DB table changes; it's small and cheap to fetch per session.
+  tiebreaker <- dbGetQuery(con, "SELECT entry_name as Entry, tiebreaker_points as Tiebreaker FROM submission_totals") %>%
+    rename_with(~ paste0(toupper(substr(., 1, 1)), substr(., 2, nchar(.)))) %>%
+    dplyr::rename(TieBreaker = Tiebreaker) %>%
+    mutate(X = seq_len(nrow(.))) %>%
+    select(X, Entry, TieBreaker)
+
   
   #keep_alive <- shiny::reactiveTimer(intervalMs = 10000, 
    #                                  session = shiny::getDefaultReactiveDomain())

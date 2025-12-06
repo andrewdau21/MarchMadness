@@ -65,13 +65,7 @@ raw_selections_long <- dbGetQuery(con, "SELECT entry_name as Entry, team_name as
   # normalize column display names to TitleCase for downstream code
   rename_with(~ paste0(toupper(substr(., 1, 1)), substr(., 2, nchar(.))))
 
-# Tiebreaker table: small table of entry_name -> tiebreaker points
-# We add a simple integer row index `X` for safe joins in the UI code.
-tiebreaker <- dbGetQuery(con, "SELECT entry_name as Entry, tiebreaker_points as Tiebreaker FROM submission_totals") %>%
-  rename_with(~ paste0(toupper(substr(., 1, 1)), substr(., 2, nchar(.)))) %>%
-  dplyr::rename(TieBreaker = Tiebreaker) %>%
-  mutate(X = seq_len(nrow(.))) %>%
-  select(X, Entry, TieBreaker)
+
 
 # Full bracket entries table (used to render the main standings view). We
 # provide a simple row index column `X` to make joins deterministic.
