@@ -33,6 +33,9 @@ function(input, output, session) {
     mutate(X = seq_len(nrow(.))) %>%
     select(X, Entry, TieBreaker)
 
+  # Basic team lookup (team name, seed, and cost). Sorted by seed for UI.
+
+
   
   #keep_alive <- shiny::reactiveTimer(intervalMs = 10000, 
    #                                  session = shiny::getDefaultReactiveDomain())

@@ -56,9 +56,12 @@ con <- dbConnect(
 ## pagination strategies in the server code instead.
 ## -----------------------------------------------------------------------------
 
+
 # Basic team lookup (team name, seed, and cost). Sorted by seed for UI.
 teams <- dbGetQuery(con, "SELECT team_name, seed, cost FROM march_madness_teams") %>%
   arrange(seed)
+
+
 
 # Flattened submissions list useful for joins and quick lookups
 raw_selections_long <- dbGetQuery(con, "SELECT entry_name as Entry, team_name as Team FROM submissions") %>%
