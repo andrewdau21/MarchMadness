@@ -26,15 +26,23 @@ ui <- dashboardPage(
 
   
   dashboardSidebar(collapsed = TRUE, 
-    sidebarMenu(
-      #menuItem("Entry Form", tabName = "entry", icon = icon("table"))
-      menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard"))
-      ,menuItem("Full Standings", tabName = "scoreboard", icon = icon("th"))#,
-      #menuItem("Chat", tabName="chat", icon =icon("comments") )
-      #,radioButtons("autorefresh", label = h3("Auto Refresh"),
-      #             choices = list("On - 1 Minute" = 1, "Off" = 2), 
-      #             selected = 2)
-    )
+    {
+      # UI phase determines which menu items are visible.
+      # Two supported phases:
+      #  - entry_phase: Entry Form is visible (for initial signups)
+      #  - post_entry: Leaderboard and Full Standings are visible
+      ui_phase <- Sys.getenv('UI_PHASE', 'entry_phase')
+      if (tolower(ui_phase) == 'entry_phase') {
+        sidebarMenu(id = "main_tabs", 
+          menuItem("Entry Form", tabName = "entry", icon = icon("table"))
+        )
+      } else {
+        sidebarMenu(id = "main_tabs",
+          menuItem("Leaderboard", tabName = "leaderboard", icon = icon("dashboard")),
+          menuItem("Full Standings", tabName = "scoreboard", icon = icon("th"))
+        )
+      }
+    }
   ),
   dashboardBody(
     useShinyjs(),

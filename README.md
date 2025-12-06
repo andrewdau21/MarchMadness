@@ -34,6 +34,13 @@ raw_selections_real.csv ?
 The application is currently deployed on Digital Ocean using their container registry and application service.  Full CI/CD pipeline is also implement, as any commit to the main branch will trigger an automatic re-deploy of the application.  
 
 
+## UI_PHASE environment variable
+To support an initial signup window and a later scoreboard-only mode, the app reads `UI_PHASE` at startup.
+- `entry_phase` (default): the sidebar shows the Entry Form only.
+- `post_entry`: the sidebar shows Leaderboard and Full Standings only.
+
+Set `UI_PHASE` via your environment (or in Azure App Settings) to flip behaviour during deployment.
+
 ## Running the app yourself.
 This is a completely self contained application.  
 
