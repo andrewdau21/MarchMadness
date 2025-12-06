@@ -50,7 +50,8 @@ function(input, output, session) {
  
   #build the data for the standings table
   if(nrow(tiebreaker) > 0){
-  rv <- reactiveValues(m=standings_function())}
+    rv <- reactiveValues(m = standings_function(tiebreaker))
+  }
 
   #build the data for the live scores table                   
   values <- reactiveValues(df_data = as.data.frame(live_scores_function()[[1]]))

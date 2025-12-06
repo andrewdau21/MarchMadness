@@ -1,5 +1,5 @@
 
-standings_function <- function(){
+standings_function <- function(tiebreaker = NULL){
 compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20250320-20250414&groups=500')
 
 myfile <- getURL(compiled_url, simplifyVector=FALSE)
@@ -223,7 +223,12 @@ standings_live <- standings_live %>% left_join(temp_money3, by = "Entry") %>%
   mutate(loser24 = ifelse(Team24 %in% as.vector(losers$loser), .1, 1)) 
 
 abc <<- standings_live
-standings_live <-standings_live %>% left_join(tiebreaker, by=c("Entry"))
+if (!is.null(tiebreaker)) {
+  standings_live <- standings_live %>% left_join(tiebreaker, by = c("Entry"))
+} else {
+  # If no tiebreaker provided, add an empty TieBreaker column to keep shape
+  standings_live$TieBreaker <- NA
+}
 
 return(standings_live)
 
