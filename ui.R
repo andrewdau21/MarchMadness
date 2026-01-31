@@ -3,7 +3,7 @@ header_img <- tags$img(
   src='salbot.jpeg',
   style = 'height: 50px; width: 50px; position: absolute; left: 50%; transform: translateX(-50%);'
 )
-header <-  htmltools::tagQuery(dashboardHeader(title = "March Capness 2025"))
+header <-  htmltools::tagQuery(dashboardHeader(title = "March Capness 2026"))
 header <- header$
   addAttrs(style = "position: relative")$ # add some styles to the header 
   find(".navbar.navbar-static-top")$ # find the header right side
