@@ -1,6 +1,6 @@
 
 standings_function <- function(tiebreaker = NULL){
-compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20250320-20250414&groups=500')
+compiled_url <- paste0('http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?lang=en&region=us&limit=999&dates=20260319-20260414&groups=500')
 
 myfile <- getURL(compiled_url, simplifyVector=FALSE)
 
