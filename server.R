@@ -605,7 +605,7 @@ function(input, output, session) {
         "</style></head>",
         "<body>",
         "<div class='container'>",
-        "<h1>March Capness 2025 - Your Entry is In!</h1>",
+        "<h1>March Capness 2026 - Your Entry is In!</h1>",
         "<p>Hi ", input$entry_name, ",</p>",
         "<p>Thanks for joining the madness! Your entry is locked and loaded. Here’s the rundown:</p>",
         "<p><strong>Entry ID:</strong> ", entry_id, "</p>",
@@ -633,7 +633,7 @@ function(input, output, session) {
       email <- envelope(
         to = c(input$email, 'ncaasalarycap@gmail.com'),
         from = "Sal Arycap",
-        subject = "2025 March Capness Entry - Let’s Get Bracket-tastic!",
+        subject = "2026 March Capness Entry - Let’s Get Bracket-tastic!",
         html = email_body
       )
       
