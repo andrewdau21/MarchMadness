@@ -1,6 +1,4 @@
 
-
-shiny::useReconnect()
 header_img <- tags$img(
   src='salbot.jpeg',
   style = 'height: 50px; width: 50px; position: absolute; left: 50%; transform: translateX(-50%);'
@@ -48,6 +46,7 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     useShinyjs(),
+    shiny::useReconnect(),
     div(id = "loading", style = "display: none;", 
         "Sending email... ", 
         tags$span(class = "spinner")
