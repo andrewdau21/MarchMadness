@@ -24,7 +24,7 @@ linePrefix <- function(){
 
 
 function(input, output, session) {
-    session$allowReconnect(TRUE) 
+    session$allowReconnect("force") 
 
   # Load small, session-scoped tables that may change during runtime.
   # Moving `tiebreaker` here avoids forcing a full app restart when the
