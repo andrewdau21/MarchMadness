@@ -1,4 +1,4 @@
-FROM rocker/tidyverse:4.2.1
+FROM rocker/tidyverse:4.4.3
  
 RUN R -e 'install.packages("shiny")'
 RUN R -e 'install.packages("RCurl")'
