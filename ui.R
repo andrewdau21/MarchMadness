@@ -46,7 +46,7 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     useShinyjs(),
-    shiny::useReconnect(),
+    #shiny::useReconnect(),
     div(id = "loading", style = "display: none;", 
         "Sending email... ", 
         tags$span(class = "spinner")
