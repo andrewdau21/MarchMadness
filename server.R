@@ -564,7 +564,7 @@ function(input, output, session) {
       
       incProgress(0.2, detail = "Saving submission to database...")
       
-      dbWriteTable(con, "submissions", submission, append = TRUE, row.names = FALSE)
+      # dbWriteTable(con, "submissions", submission, append = TRUE, row.names = FALSE)
       
       totals <- data.frame(
         entry_id = entry_id,
@@ -574,7 +574,7 @@ function(input, output, session) {
         submission_time = Sys.time(),
         entry_name = input$entry_name
       )
-      dbWriteTable(con, "submission_totals", totals, append = TRUE, row.names = FALSE)
+      # dbWriteTable(con, "submission_totals", totals, append = TRUE, row.names = FALSE)
       
       # Prepare data for email table
       selected_teams_df <- teams %>% 
