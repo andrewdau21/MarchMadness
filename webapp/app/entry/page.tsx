@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { EntryForm } from "@/components/entry/EntryForm";
 
@@ -5,7 +6,15 @@ export const metadata = {
   title: "Submit Entry | March Capness 2026",
 };
 
+const ENTRY_DEADLINE = new Date("2026-03-18T12:00:00-07:00");
+
 export default function EntryPage() {
+  const entriesClosed = new Date() > ENTRY_DEADLINE;
+
+  if (entriesClosed) {
+    redirect("/leaderboard");
+  }
+
   return (
     <div>
       <Header
@@ -14,7 +23,6 @@ export default function EntryPage() {
         badge="Entry Phase"
       />
 
-      {/* Rules summary */}
       <div className="mc-card p-4 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
         {[
           { label: "Salary Cap", value: "$100" },
