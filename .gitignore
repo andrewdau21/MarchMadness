@@ -1,9 +1,20 @@
-# Node / Next.js
-webapp/node_modules/
-webapp/.next/
-webapp/.env.local
-webapp/package-lock.json
-webapp/next-env.d.ts
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+## R / RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+*.Rproj
 
-# Misc
-.DS_Store
+# Application artifacts and local configs
+chat.Rds
+chatOLD.Rds
+rsconnect/
+dockercommands/
+DoNotCommit/
+README.html
