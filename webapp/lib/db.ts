@@ -23,7 +23,7 @@ function createPool(): Pool {
     max: 10,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
-    ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
+    ssl: { rejectUnauthorized: false },
   });
 
   pool.on("error", (err) => {
@@ -33,11 +33,13 @@ function createPool(): Pool {
   return pool;
 }
 
-// In development, reuse the pool across hot reloads to avoid exhausting connections.
-const pool: Pool =
-  process.env.NODE_ENV === "development"
-    ? (global._pgPool ?? (global._pgPool = createPool()))
-    : createPool();
+// In development, invalidate cached pool when module is re-evaluated so config
+// changes (like DB_SSL) take effect immediately on hot reload.
+if (global._pgPool) {
+  global._pgPool.end().catch(() => {});
+  global._pgPool = undefined;
+}
+const pool: Pool = global._pgPool ?? (global._pgPool = createPool());
 
 export default pool;
 

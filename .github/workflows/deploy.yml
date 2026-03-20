@@ -1,4 +1,4 @@
-name: Build and Deploy webapp
+name: Build and Deploy
 
 on:
   push:
@@ -38,13 +38,13 @@ jobs:
           file: ./webapp/Dockerfile
           push: true
           tags: |
-            registry.digitalocean.com/daucontainerregistry/marchcapness-next:latest
-            registry.digitalocean.com/daucontainerregistry/marchcapness-next:${{ steps.meta.outputs.sha_short }}
+            registry.digitalocean.com/daucontainerregistry/marchcapness:latest
+            registry.digitalocean.com/daucontainerregistry/marchcapness:${{ steps.meta.outputs.sha_short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Image pushed successfully
         run: |
           echo "Image pushed:"
-          echo "  registry.digitalocean.com/daucontainerregistry/marchcapness-next:latest"
-          echo "  registry.digitalocean.com/daucontainerregistry/marchcapness-next:${{ steps.meta.outputs.sha_short }}"
+          echo "  registry.digitalocean.com/daucontainerregistry/marchcapness:latest"
+          echo "  registry.digitalocean.com/daucontainerregistry/marchcapness:${{ steps.meta.outputs.sha_short }}"
