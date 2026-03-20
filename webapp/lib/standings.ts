@@ -20,6 +20,7 @@
 import { query } from "./db";
 import { fetchScoreboard, fetchWinProbability } from "./espn";
 import type { BracketEntry, StandingsRow, StandingsTeamSlot } from "./types";
+import { SEED_COSTS } from "./types";
 
 // ─── DB Queries ───────────────────────────────────────────────────────────────
 
@@ -61,16 +62,6 @@ async function fetchMasterTeams(): Promise<DbMasterTeam[]> {
   return query<DbMasterTeam>('SELECT DISTINCT * FROM all_teams');
 }
 
-interface DbTeamCost {
-  team_name: string;
-  cost: number;
-}
-
-async function fetchTeamCosts(): Promise<Map<string, number>> {
-  const rows = await query<DbTeamCost>('SELECT team_name, cost FROM march_madness_teams');
-  return new Map(rows.map(r => [r.team_name, r.cost]));
-}
-
 // ─── Win / Loss Tracking ──────────────────────────────────────────────────────
 
 interface TeamRecord {
@@ -84,12 +75,11 @@ interface TeamRecord {
 
 export async function computeStandings(): Promise<StandingsRow[]> {
   // Fetch everything in parallel where possible
-  const [bracketEntries, tiebreakers, masterTeams, games, teamCostMap] = await Promise.all([
+  const [bracketEntries, tiebreakers, masterTeams, games] = await Promise.all([
     fetchBracketEntries(),
     fetchTiebreakers(),
     fetchMasterTeams(),
     fetchScoreboard(),
-    fetchTeamCosts(),
   ]);
 
   // Build a map: team shortDisplayName → master record (for logos / seeds)
@@ -224,7 +214,7 @@ export async function computeStandings(): Promise<StandingsRow[]> {
       const logoUrl = teamLogoMap.get(teamName) ?? "";
       const seed = teamSeedMap.get(teamName) ?? 0;
 
-      const cost = teamCostMap.get(teamName) ?? 0;
+      const cost = SEED_COSTS[seed] ?? 0;
       teamSlots.push({ teamName, opacity, logoUrl, seed, isPlaying, cost });
     }
 

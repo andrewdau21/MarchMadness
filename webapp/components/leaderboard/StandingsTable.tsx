@@ -99,8 +99,9 @@ const StandingsRowItem = memo(function StandingsRowItem({
   onPin: () => void;
 }) {
   const hasFractional = row.live_wins !== row.wins;
-  const spent = row.teams.reduce((sum, s) => sum + (s.teamName ? s.cost : 0), 0);
-  const remaining = BUDGET_CAP - spent;
+  // dead money = cost of eliminated teams only (opacity 0.1 = has a loss)
+  const deadMoney = row.teams.reduce((sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0);
+  const remaining = BUDGET_CAP - deadMoney;
   return (
     <Fragment>
       <tr

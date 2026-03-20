@@ -75,7 +75,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Query bracket_entries5 for all entries that contain this team in any slot
-    const conditions = Array.from({ length: 24 }, (_, i) => `Team${i + 1} = $1`).join(
+    // Column names need quoting — Postgres lowercases unquoted identifiers
+    const conditions = Array.from({ length: 24 }, (_, i) => `"Team${i + 1}" = $1`).join(
       " OR "
     );
     const rows = await query<DbEntry>(
