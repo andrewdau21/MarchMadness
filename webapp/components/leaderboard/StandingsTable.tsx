@@ -12,7 +12,6 @@ import {
   type SortingState,
   type ExpandedState,
 } from "@tanstack/react-table";
-import Image from "next/image";
 import type { StandingsRow, StandingsApiResponse, StandingsTeamSlot } from "@/lib/types";
 
 // ─── Team Logo Grid (expanded row) ───────────────────────────────────────────
@@ -35,13 +34,14 @@ function TeamLogoGrid({ teams }: { teams: StandingsTeamSlot[] }) {
             >
               <div className="relative w-12 h-12">
                 {slot.logoUrl ? (
-                  <Image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={slot.logoUrl}
                     alt={slot.teamName}
-                    fill
-                    sizes="48px"
-                    className="object-contain"
-                    unoptimized
+                    width={48}
+                    height={48}
+                    className="object-contain w-12 h-12"
+                    loading="lazy"
                   />
                 ) : (
                   <div
@@ -51,7 +51,6 @@ function TeamLogoGrid({ teams }: { teams: StandingsTeamSlot[] }) {
                     {slot.teamName.slice(0, 3).toUpperCase()}
                   </div>
                 )}
-                {/* Seed badge */}
                 <span className="seed-badge">{slot.seed}</span>
               </div>
               <span
@@ -177,6 +176,8 @@ export function StandingsTable({ limit }: { limit?: number }) {
       if (!res.ok) throw new Error("Failed to fetch standings");
       return res.json();
     },
+    staleTime: 60_000,
+    refetchInterval: 60_000,
   });
 
   const allRows = data?.standings ?? [];

@@ -13,7 +13,6 @@ import {
   type SortingState,
   type ExpandedState,
 } from "@tanstack/react-table";
-import Image from "next/image";
 import type { StandingsRow, StandingsApiResponse, StandingsTeamSlot } from "@/lib/types";
 
 // ─── Expanded team grid ───────────────────────────────────────────────────────
@@ -36,13 +35,14 @@ function ExpandedTeamGrid({ teams }: { teams: StandingsTeamSlot[] }) {
           >
             <div className="relative w-14 h-14">
               {slot.logoUrl ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={slot.logoUrl}
                   alt={slot.teamName}
-                  fill
-                  sizes="56px"
-                  className="object-contain"
-                  unoptimized
+                  width={56}
+                  height={56}
+                  className="object-contain w-14 h-14"
+                  loading="lazy"
                 />
               ) : (
                 <div
@@ -194,6 +194,8 @@ export function FullStandingsTable() {
       if (!res.ok) throw new Error("Failed to fetch standings");
       return res.json();
     },
+    staleTime: 60_000,
+    refetchInterval: 60_000,
   });
 
   const rows = data?.standings ?? [];
