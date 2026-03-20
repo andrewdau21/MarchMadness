@@ -84,6 +84,7 @@ export interface StandingsTeamSlot {
   logoUrl: string;
   seed: number;
   isPlaying: boolean;
+  cost: number;
 }
 
 // ─── Live Scores Types ────────────────────────────────────────────────────────
