@@ -1,22 +1,12 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, Fragment, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getExpandedRowModel,
-  flexRender,
-  createColumnHelper,
-  type SortingState,
-  type ExpandedState,
-} from "@tanstack/react-table";
 import type { StandingsRow, StandingsApiResponse, StandingsTeamSlot } from "@/lib/types";
 
 // ─── Team Logo Grid (expanded row) ───────────────────────────────────────────
 
-function TeamLogoGrid({ teams }: { teams: StandingsTeamSlot[] }) {
+const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTeamSlot[] }) {
   return (
     <div
       className="px-4 py-4 border-t"
@@ -72,102 +62,84 @@ function TeamLogoGrid({ teams }: { teams: StandingsTeamSlot[] }) {
       </div>
     </div>
   );
-}
+});
 
-// ─── Column helper ────────────────────────────────────────────────────────────
+// ─── Single row ───────────────────────────────────────────────────────────────
 
-const col = createColumnHelper<StandingsRow>();
-
-const columns = [
-  // Expand toggle
-  col.display({
-    id: "expander",
-    header: () => null,
-    cell: ({ row }) => (
-      <button
-        onClick={row.getToggleExpandedHandler()}
-        className="px-2 text-base leading-none transition-transform"
-        style={{
-          color: "var(--text-muted)",
-          transform: row.getIsExpanded() ? "rotate(90deg)" : "rotate(0deg)",
-        }}
-        aria-label={row.getIsExpanded() ? "Collapse" : "Expand"}
+const StandingsRow = memo(function StandingsRow({
+  row,
+  rank,
+  isExpanded,
+  onToggle,
+}: {
+  row: StandingsRow;
+  rank: number;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const hasFractional = row.live_wins !== row.wins;
+  return (
+    <Fragment>
+      <tr
+        style={{ borderBottom: isExpanded ? "none" : "1px solid var(--border)", cursor: "pointer" }}
+        className="hover:bg-white/[0.03] transition-colors"
+        onClick={onToggle}
       >
-        ›
-      </button>
-    ),
-    size: 32,
-  }),
-
-  // Rank
-  col.display({
-    id: "rank",
-    header: "#",
-    cell: ({ row }) => (
-      <span className="font-bold tabular-nums" style={{ color: "var(--text-muted)", fontSize: "13px" }}>
-        {row.index + 1}
-      </span>
-    ),
-    size: 40,
-  }),
-
-  col.accessor("entry_name", {
-    id: "entry_name",
-    header: "Entry",
-    cell: (info) => (
-      <span className="font-semibold text-sm" style={{ color: "var(--text)" }}>
-        {info.getValue()}
-      </span>
-    ),
-  }),
-
-  col.accessor("wins", {
-    id: "wins",
-    header: "Wins",
-    cell: (info) => (
-      <span className="font-bold tabular-nums text-sm" style={{ color: "var(--text)" }}>
-        {info.getValue().toFixed(1)}
-      </span>
-    ),
-    size: 70,
-  }),
-
-  col.accessor("live_wins", {
-    id: "live_wins",
-    header: "Total (w/Live)",
-    cell: (info) => {
-      const liveWins = info.getValue();
-      const wins = info.row.original.wins;
-      const hasFractional = liveWins !== wins;
-      return (
-        <span
-          className="font-bold tabular-nums text-sm"
-          style={{ color: hasFractional ? "var(--accent)" : "var(--text)" }}
-        >
-          {liveWins.toFixed(2)}
-        </span>
-      );
-    },
-    size: 110,
-  }),
-
-  col.accessor("tiebreaker_points", {
-    id: "tiebreaker",
-    header: "TB",
-    cell: (info) => (
-      <span className="tabular-nums text-xs" style={{ color: "var(--text-muted)" }}>
-        {info.getValue()}
-      </span>
-    ),
-    size: 60,
-  }),
-];
+        <td style={{ padding: "10px 12px", width: 32 }}>
+          <span
+            className="text-base leading-none transition-transform inline-block"
+            style={{
+              color: "var(--text-muted)",
+              transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+            }}
+          >
+            ›
+          </span>
+        </td>
+        <td style={{ padding: "10px 12px", width: 40 }}>
+          <span className="font-bold tabular-nums" style={{ color: "var(--text-muted)", fontSize: "13px" }}>
+            {rank}
+          </span>
+        </td>
+        <td style={{ padding: "10px 12px" }}>
+          <span className="font-semibold text-sm" style={{ color: "var(--text)" }}>
+            {row.entry_name}
+          </span>
+        </td>
+        <td style={{ padding: "10px 12px", width: 70 }}>
+          <span className="font-bold tabular-nums text-sm" style={{ color: "var(--text)" }}>
+            {row.wins.toFixed(1)}
+          </span>
+        </td>
+        <td style={{ padding: "10px 12px", width: 110 }}>
+          <span
+            className="font-bold tabular-nums text-sm"
+            style={{ color: hasFractional ? "var(--accent)" : "var(--text)" }}
+          >
+            {row.live_wins.toFixed(2)}
+          </span>
+        </td>
+        <td style={{ padding: "10px 12px", width: 60 }}>
+          <span className="tabular-nums text-xs" style={{ color: "var(--text-muted)" }}>
+            {row.tiebreaker_points}
+          </span>
+        </td>
+      </tr>
+      {isExpanded && (
+        <tr>
+          <td colSpan={6} style={{ padding: 0 }}>
+            <TeamLogoGrid teams={row.teams} />
+          </td>
+        </tr>
+      )}
+    </Fragment>
+  );
+});
 
 // ─── Standings Table ──────────────────────────────────────────────────────────
 
 export function StandingsTable({ limit }: { limit?: number }) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [expanded, setExpanded] = useState<ExpandedState>({});
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const { data, isLoading, isError, dataUpdatedAt } = useQuery<StandingsApiResponse>({
     queryKey: ["standings"],
@@ -177,27 +149,21 @@ export function StandingsTable({ limit }: { limit?: number }) {
       return res.json();
     },
     staleTime: 60_000,
-    refetchInterval: 60_000,
   });
 
   const allRows = data?.standings ?? [];
   const rows = limit != null ? allRows.slice(0, limit) : allRows;
 
-  const table = useReactTable({
-    data: rows,
-    columns,
-    state: { sorting, expanded },
-    onSortingChange: setSorting,
-    onExpandedChange: setExpanded,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    getRowCanExpand: () => true,
-  });
+  function toggleRow(entryName: string) {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(entryName)) next.delete(entryName);
+      else next.add(entryName);
+      return next;
+    });
+  }
 
-  const lastUpdated = dataUpdatedAt
-    ? new Date(dataUpdatedAt).toLocaleTimeString()
-    : null;
+  const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : null;
 
   if (isLoading) {
     return (
@@ -229,7 +195,6 @@ export function StandingsTable({ limit }: { limit?: number }) {
 
   return (
     <div className="mc-card overflow-hidden">
-      {/* Table header row */}
       <div
         className="px-5 py-3 border-b flex items-center justify-between"
         style={{ borderColor: "var(--border)" }}
@@ -252,58 +217,36 @@ export function StandingsTable({ limit }: { limit?: number }) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id}>
-                {hg.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    style={{
-                      width: header.getSize(),
-                      cursor: header.column.getCanSort() ? "pointer" : "default",
-                      padding: "8px 12px",
-                      textAlign: "left",
-                      fontSize: "11px",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: "var(--text-muted)",
-                      borderBottom: "1px solid var(--border)",
-                      background: "var(--bg-card)",
-                      userSelect: "none",
-                    }}
-                    onClick={header.column.getToggleSortingHandler()}
-                  >
-                    <span className="flex items-center gap-1">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getIsSorted() === "asc" && " ↑"}
-                      {header.column.getIsSorted() === "desc" && " ↓"}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            ))}
+            <tr>
+              {["", "#", "Entry", "Wins", "Total (w/Live)", "TB"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: "8px 12px",
+                    textAlign: "left",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: "var(--text-muted)",
+                    borderBottom: "1px solid var(--border)",
+                    background: "var(--bg-card)",
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <Fragment key={row.id}>
-                <tr
-                  style={{ borderBottom: row.getIsExpanded() ? "none" : "1px solid var(--border)" }}
-                  className="hover:bg-white/[0.03] transition-colors"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} style={{ padding: "10px 12px" }}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-                {row.getIsExpanded() && (
-                  <tr key={`${row.id}-expanded`}>
-                    <td colSpan={columns.length} style={{ padding: 0 }}>
-                      <TeamLogoGrid teams={row.original.teams} />
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
+            {rows.map((row, i) => (
+              <StandingsRow
+                key={row.entry_name}
+                row={row}
+                rank={i + 1}
+                isExpanded={expandedRows.has(row.entry_name)}
+                onToggle={() => toggleRow(row.entry_name)}
+              />
             ))}
           </tbody>
         </table>
