@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, Fragment, memo } from "react";
+import { useState, Fragment, memo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { StandingsRow, StandingsApiResponse, StandingsTeamSlot } from "@/lib/types";
 
-// ─── Team Logo Grid (expanded row) ───────────────────────────────────────────
+const MY_ENTRY_KEY = "marchcapness_my_entry";
+
+// ─── Team Logo Grid ───────────────────────────────────────────────────────────
 
 const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTeamSlot[] }) {
   return (
@@ -80,22 +82,30 @@ const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTea
 
 // ─── Single row ───────────────────────────────────────────────────────────────
 
-const StandingsRow = memo(function StandingsRow({
+const StandingsRowItem = memo(function StandingsRowItem({
   row,
   rank,
   isExpanded,
+  isMyEntry,
   onToggle,
+  onPin,
 }: {
   row: StandingsRow;
   rank: number;
   isExpanded: boolean;
+  isMyEntry: boolean;
   onToggle: () => void;
+  onPin: () => void;
 }) {
   const hasFractional = row.live_wins !== row.wins;
   return (
     <Fragment>
       <tr
-        style={{ borderBottom: isExpanded ? "none" : "1px solid var(--border)", cursor: "pointer" }}
+        style={{
+          borderBottom: isExpanded ? "none" : "1px solid var(--border)",
+          cursor: "pointer",
+          background: isMyEntry ? "rgba(0,163,108,0.08)" : "transparent",
+        }}
         className="hover:bg-white/[0.03] transition-colors"
         onClick={onToggle}
       >
@@ -116,9 +126,19 @@ const StandingsRow = memo(function StandingsRow({
           </span>
         </td>
         <td style={{ padding: "10px 12px" }}>
-          <span className="font-semibold text-sm" style={{ color: "var(--text)" }}>
-            {row.entry_name}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm" style={{ color: isMyEntry ? "var(--accent)" : "var(--text)" }}>
+              {row.entry_name}
+            </span>
+            {isMyEntry && (
+              <span
+                className="text-xs px-1.5 py-0.5 rounded font-medium"
+                style={{ background: "rgba(0,163,108,0.2)", color: "var(--accent)", fontSize: "10px" }}
+              >
+                You
+              </span>
+            )}
+          </div>
         </td>
         <td style={{ padding: "10px 12px", width: 70 }}>
           <span className="font-bold tabular-nums text-sm" style={{ color: "var(--text)" }}>
@@ -138,10 +158,20 @@ const StandingsRow = memo(function StandingsRow({
             {row.tiebreaker_points}
           </span>
         </td>
+        <td style={{ padding: "10px 8px", width: 36 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onPin(); }}
+            title={isMyEntry ? "Unpin entry" : "Track this entry"}
+            style={{ color: isMyEntry ? "var(--accent)" : "var(--text-muted)", fontSize: "16px", lineHeight: 1 }}
+            className="hover:opacity-80 transition-opacity"
+          >
+            {isMyEntry ? "★" : "☆"}
+          </button>
+        </td>
       </tr>
       {isExpanded && (
-        <tr>
-          <td colSpan={6} style={{ padding: 0 }}>
+        <tr style={{ background: isMyEntry ? "rgba(0,163,108,0.04)" : "transparent" }}>
+          <td colSpan={7} style={{ padding: 0 }}>
             <TeamLogoGrid teams={row.teams} />
           </td>
         </tr>
@@ -154,6 +184,15 @@ const StandingsRow = memo(function StandingsRow({
 
 export function StandingsTable({ limit }: { limit?: number }) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [myEntry, setMyEntry] = useState<string | null>(null);
+  const myEntryRowRef = useRef<HTMLTableRowElement | null>(null);
+
+  // Load saved entry from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(MY_ENTRY_KEY);
+    if (saved) setMyEntry(saved);
+  }, []);
 
   const { data, isLoading, isError, dataUpdatedAt } = useQuery<StandingsApiResponse>({
     queryKey: ["standings"],
@@ -166,7 +205,6 @@ export function StandingsTable({ limit }: { limit?: number }) {
   });
 
   const allRows = data?.standings ?? [];
-  const rows = limit != null ? allRows.slice(0, limit) : allRows;
 
   function toggleRow(entryName: string) {
     setExpandedRows(prev => {
@@ -177,15 +215,45 @@ export function StandingsTable({ limit }: { limit?: number }) {
     });
   }
 
+  function pinEntry(entryName: string) {
+    if (myEntry === entryName) {
+      setMyEntry(null);
+      localStorage.removeItem(MY_ENTRY_KEY);
+    } else {
+      setMyEntry(entryName);
+      localStorage.setItem(MY_ENTRY_KEY, entryName);
+    }
+  }
+
+  // Rows to display: top N, plus pinned entry if outside top N, plus search results
+  const trimmed = search.trim().toLowerCase();
+  let visibleRows: { row: StandingsRow; rank: number }[];
+
+  if (trimmed) {
+    // Search mode: show all matches across full standings
+    visibleRows = allRows
+      .map((row, i) => ({ row, rank: i + 1 }))
+      .filter(({ row }) => row.entry_name.toLowerCase().includes(trimmed));
+  } else {
+    const topN = limit != null ? allRows.slice(0, limit) : allRows;
+    visibleRows = topN.map((row, i) => ({ row, rank: i + 1 }));
+
+    // If pinned entry is outside the top N, append it
+    if (myEntry && limit != null) {
+      const myIdx = allRows.findIndex(r => r.entry_name === myEntry);
+      if (myIdx >= limit) {
+        visibleRows = [...visibleRows, { row: allRows[myIdx], rank: myIdx + 1 }];
+      }
+    }
+  }
+
   const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : null;
 
   if (isLoading) {
     return (
       <div className="mc-card p-6 flex items-center justify-center gap-3 text-sm" style={{ color: "var(--text-muted)" }}>
-        <div
-          className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }}
-        />
+        <div className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin"
+          style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
         Loading standings...
       </div>
     );
@@ -199,7 +267,7 @@ export function StandingsTable({ limit }: { limit?: number }) {
     );
   }
 
-  if (rows.length === 0) {
+  if (allRows.length === 0) {
     return (
       <div className="mc-card p-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
         No entries found yet.
@@ -209,59 +277,98 @@ export function StandingsTable({ limit }: { limit?: number }) {
 
   return (
     <div className="mc-card overflow-hidden">
-      <div
-        className="px-5 py-3 border-b flex items-center justify-between"
-        style={{ borderColor: "var(--border)" }}
-      >
-        <h2 className="font-semibold text-sm" style={{ color: "var(--text)" }}>
+      {/* Header */}
+      <div className="px-5 py-3 border-b flex items-center justify-between gap-3"
+        style={{ borderColor: "var(--border)" }}>
+        <h2 className="font-semibold text-sm shrink-0" style={{ color: "var(--text)" }}>
           Standings
-          {limit != null && allRows.length > limit && (
+          {!trimmed && limit != null && allRows.length > limit && (
             <span className="ml-2 text-xs font-normal" style={{ color: "var(--text-muted)" }}>
               (Top {limit} of {allRows.length})
             </span>
           )}
         </h2>
-        {lastUpdated && (
-          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            Updated {lastUpdated}
-          </span>
-        )}
+        <div className="flex items-center gap-2 flex-1 justify-end">
+          {/* Search input */}
+          <div className="relative">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--text-muted)" }}>
+              🔍
+            </span>
+            <input
+              type="text"
+              placeholder="Find entry…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-7 pr-3 py-1 rounded-md text-xs w-36 focus:outline-none focus:ring-1"
+              style={{
+                background: "var(--muted)",
+                color: "var(--text)",
+                border: "1px solid var(--border)",
+                focusRingColor: "var(--accent)",
+              }}
+            />
+          </div>
+          {lastUpdated && (
+            <span className="text-xs shrink-0" style={{ color: "var(--text-muted)" }}>
+              {lastUpdated}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr>
-              {["", "#", "Entry", "Wins", "Total (w/Live)", "TB"].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    color: "var(--text-muted)",
-                    borderBottom: "1px solid var(--border)",
-                    background: "var(--bg-card)",
-                  }}
-                >
+              {["", "#", "Entry", "Wins", "Total (w/Live)", "TB", ""].map((h, i) => (
+                <th key={i} style={{
+                  padding: "8px 12px",
+                  textAlign: "left",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: "var(--text-muted)",
+                  borderBottom: "1px solid var(--border)",
+                  background: "var(--bg-card)",
+                }}>
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => (
-              <StandingsRow
-                key={row.entry_name}
-                row={row}
-                rank={i + 1}
-                isExpanded={expandedRows.has(row.entry_name)}
-                onToggle={() => toggleRow(row.entry_name)}
-              />
-            ))}
+            {visibleRows.map(({ row, rank }, idx) => {
+              const isPinned = myEntry === row.entry_name;
+              // Separator before pinned entry if it's outside top N
+              const showSeparator = !trimmed && limit != null && rank > limit && idx > 0;
+              return (
+                <Fragment key={row.entry_name}>
+                  {showSeparator && (
+                    <tr>
+                      <td colSpan={7} style={{ padding: "4px 12px", borderBottom: "1px solid var(--border)" }}>
+                        <span className="text-xs" style={{ color: "var(--text-muted)" }}>· · · Your entry · · ·</span>
+                      </td>
+                    </tr>
+                  )}
+                  <StandingsRowItem
+                    row={row}
+                    rank={rank}
+                    isExpanded={expandedRows.has(row.entry_name)}
+                    isMyEntry={isPinned}
+                    onToggle={() => toggleRow(row.entry_name)}
+                    onPin={() => pinEntry(row.entry_name)}
+                  />
+                </Fragment>
+              );
+            })}
+            {trimmed && visibleRows.length === 0 && (
+              <tr>
+                <td colSpan={7} style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)", fontSize: "13px" }}>
+                  No entries matching &ldquo;{search}&rdquo;
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
