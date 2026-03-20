@@ -9,9 +9,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 55_000,      // 55 s – just under the 60s revalidation
-            refetchInterval: 60_000, // auto-refresh every 60 s
-            retry: 2,
+            staleTime: 60_000,
+            refetchOnWindowFocus: false,  // clicking rows was triggering expensive refetches
+            refetchInterval: false,        // no auto-polling — standings API is expensive
+            retry: 1,
           },
         },
       })
