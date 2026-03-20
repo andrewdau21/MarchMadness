@@ -42,6 +42,20 @@ const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTea
                   </div>
                 )}
                 <span className="seed-badge">{slot.seed}</span>
+                {slot.isPlaying && (
+                  <span
+                    className="absolute -bottom-1 -right-1 text-white text-center font-bold live-dot"
+                    style={{
+                      fontSize: "8px",
+                      background: "var(--accent)",
+                      borderRadius: "3px",
+                      padding: "1px 3px",
+                      lineHeight: "1.4",
+                    }}
+                  >
+                    LIVE
+                  </span>
+                )}
               </div>
               <span
                 className="text-center leading-tight"

@@ -213,7 +213,7 @@ export async function computeStandings(): Promise<StandingsRow[]> {
       const logoUrl = teamLogoMap.get(teamName) ?? "";
       const seed = teamSeedMap.get(teamName) ?? 0;
 
-      teamSlots.push({ teamName, opacity, logoUrl, seed });
+      teamSlots.push({ teamName, opacity, logoUrl, seed, isPlaying });
     }
 
     const tiebreaker_points = tiebreakerMap.get(entry.Entry) ?? 0;
