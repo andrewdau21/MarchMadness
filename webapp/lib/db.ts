@@ -3,45 +3,35 @@
  *
  * IMPORTANT: This pool is configured for READ-ONLY access.
  * Never perform INSERT / UPDATE / DELETE / DDL through this pool.
+ *
+ * Pool is created lazily on first query() call so Next.js build-time static
+ * analysis never attempts a real DB connection.
  */
 
 import { Pool } from "pg";
 
-declare global {
-  // allow global var to persist across hot-reloads in development
-  // eslint-disable-next-line no-var
-  var _pgPool: Pool | undefined;
-}
+let pool: Pool | null = null;
 
-function createPool(): Pool {
-  const pool = new Pool({
-    host: process.env.host,
-    port: parseInt(process.env.port ?? "5432", 10),
-    database: process.env.dbname,
-    user: process.env.user,
-    password: process.env.password,
-    max: 10,
-    idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 10_000,
-    ssl: { rejectUnauthorized: false },
-  });
-
-  pool.on("error", (err) => {
-    console.error("Unexpected error on idle DB client", err);
-  });
-
+function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool({
+      host: process.env.host,
+      port: parseInt(process.env.port ?? "5432", 10),
+      database: process.env.dbname,
+      user: process.env.user,
+      password: process.env.password,
+      max: 10,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 10_000,
+      ssl: { rejectUnauthorized: false },
+    });
+    pool.on("error", (err) => {
+      console.error("Unexpected error on idle DB client", err);
+      pool = null; // reset so next call creates a fresh pool
+    });
+  }
   return pool;
 }
-
-// In development, invalidate cached pool when module is re-evaluated so config
-// changes (like DB_SSL) take effect immediately on hot reload.
-if (global._pgPool) {
-  global._pgPool.end().catch(() => {});
-  global._pgPool = undefined;
-}
-const pool: Pool = global._pgPool ?? (global._pgPool = createPool());
-
-export default pool;
 
 /**
  * Execute a read-only query. Typed helper that prevents accidental mutations by
@@ -51,7 +41,7 @@ export async function query<T = Record<string, unknown>>(
   sql: string,
   params?: unknown[]
 ): Promise<T[]> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     const result = await client.query<T>(sql, params);
     return result.rows;
