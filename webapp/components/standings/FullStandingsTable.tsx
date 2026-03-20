@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   useReactTable,
@@ -318,9 +318,8 @@ export function FullStandingsTable() {
           </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <>
+              <Fragment key={row.id}>
                 <tr
-                  key={row.id}
                   style={{ borderBottom: row.getIsExpanded() ? "none" : "1px solid var(--border)" }}
                   className="hover:bg-white/[0.03] transition-colors"
                 >
@@ -337,7 +336,7 @@ export function FullStandingsTable() {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
