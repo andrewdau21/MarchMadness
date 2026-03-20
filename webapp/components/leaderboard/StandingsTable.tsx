@@ -153,16 +153,16 @@ const StandingsRowItem = memo(function StandingsRowItem({
             {row.live_wins.toFixed(2)}
           </span>
         </td>
-        <td style={{ padding: "10px 12px", width: 60 }}>
+        <td style={{ padding: "10px 6px", width: 36 }}>
           <span className="tabular-nums text-xs" style={{ color: "var(--text-muted)" }}>
             {row.tiebreaker_points}
           </span>
         </td>
-        <td style={{ padding: "10px 8px", width: 36 }}>
+        <td style={{ padding: "10px 6px", width: 28 }}>
           <button
             onClick={(e) => { e.stopPropagation(); onPin(); }}
             title={isMyEntry ? "Unpin entry" : "Track this entry"}
-            style={{ color: isMyEntry ? "var(--accent)" : "var(--text-muted)", fontSize: "16px", lineHeight: 1 }}
+            style={{ color: isMyEntry ? "var(--accent)" : "var(--text-muted)", fontSize: "15px", lineHeight: 1 }}
             className="hover:opacity-80 transition-opacity"
           >
             {isMyEntry ? "★" : "☆"}
@@ -278,19 +278,25 @@ export function StandingsTable({ limit }: { limit?: number }) {
   return (
     <div className="mc-card overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-3 border-b flex items-center justify-between gap-3"
+      <div className="px-4 py-3 border-b flex flex-col sm:flex-row sm:items-center gap-2"
         style={{ borderColor: "var(--border)" }}>
-        <h2 className="font-semibold text-sm shrink-0" style={{ color: "var(--text)" }}>
-          Standings
-          {!trimmed && limit != null && allRows.length > limit && (
-            <span className="ml-2 text-xs font-normal" style={{ color: "var(--text-muted)" }}>
-              (Top {limit} of {allRows.length})
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="font-semibold text-sm shrink-0" style={{ color: "var(--text)" }}>
+            Standings
+            {!trimmed && limit != null && allRows.length > limit && (
+              <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--text-muted)" }}>
+                (Top {limit} of {allRows.length})
+              </span>
+            )}
+          </h2>
+          {lastUpdated && (
+            <span className="text-xs sm:hidden shrink-0" style={{ color: "var(--text-muted)" }}>
+              {lastUpdated}
             </span>
           )}
-        </h2>
-        <div className="flex items-center gap-2 flex-1 justify-end">
-          {/* Search input */}
-          <div className="relative">
+        </div>
+        <div className="flex items-center gap-2 sm:flex-1 sm:justify-end">
+          <div className="relative flex-1 sm:flex-none">
             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs" style={{ color: "var(--text-muted)" }}>
               🔍
             </span>
@@ -299,17 +305,16 @@ export function StandingsTable({ limit }: { limit?: number }) {
               placeholder="Find entry…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-7 pr-3 py-1 rounded-md text-xs w-36 focus:outline-none focus:ring-1"
+              className="pl-7 pr-3 py-1.5 rounded-md text-xs w-full sm:w-36 focus:outline-none"
               style={{
                 background: "var(--muted)",
                 color: "var(--text)",
                 border: "1px solid var(--border)",
-                focusRingColor: "var(--accent)",
               }}
             />
           </div>
           {lastUpdated && (
-            <span className="text-xs shrink-0" style={{ color: "var(--text-muted)" }}>
+            <span className="text-xs shrink-0 hidden sm:block" style={{ color: "var(--text-muted)" }}>
               {lastUpdated}
             </span>
           )}
@@ -322,7 +327,7 @@ export function StandingsTable({ limit }: { limit?: number }) {
             <tr>
               {["", "#", "Entry", "Wins", "Total (w/Live)", "TB", ""].map((h, i) => (
                 <th key={i} style={{
-                  padding: "8px 12px",
+                  padding: "8px 6px",
                   textAlign: "left",
                   fontSize: "11px",
                   fontWeight: 600,
