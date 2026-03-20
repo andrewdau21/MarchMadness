@@ -3,6 +3,7 @@
 import { useState, Fragment, memo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { StandingsRow, StandingsApiResponse, StandingsTeamSlot } from "@/lib/types";
+import { SEED_COSTS, BUDGET_CAP } from "@/lib/types";
 
 const MY_ENTRY_KEY = "marchcapness_my_entry";
 
@@ -98,6 +99,8 @@ const StandingsRowItem = memo(function StandingsRowItem({
   onPin: () => void;
 }) {
   const hasFractional = row.live_wins !== row.wins;
+  const spent = row.teams.reduce((sum, s) => sum + (s.teamName ? (SEED_COSTS[s.seed] ?? 0) : 0), 0);
+  const remaining = BUDGET_CAP - spent;
   return (
     <Fragment>
       <tr
@@ -154,8 +157,8 @@ const StandingsRowItem = memo(function StandingsRowItem({
           </span>
         </td>
         <td style={{ padding: "10px 6px", width: 36 }}>
-          <span className="tabular-nums text-xs" style={{ color: "var(--text-muted)" }}>
-            {row.tiebreaker_points}
+          <span className="tabular-nums text-xs" style={{ color: remaining > 0 ? "var(--accent)" : "var(--text-muted)" }}>
+            ${remaining}
           </span>
         </td>
         <td style={{ padding: "10px 6px", width: 28 }}>
@@ -325,7 +328,7 @@ export function StandingsTable({ limit }: { limit?: number }) {
         <table className="w-full text-sm">
           <thead>
             <tr>
-              {["", "#", "Entry", "Wins", "Total (w/Live)", "TB", ""].map((h, i) => (
+              {["", "#", "Entry", "Wins", "Total (w/Live)", "$Left", ""].map((h, i) => (
                 <th key={i} style={{
                   padding: "8px 6px",
                   textAlign: "left",
