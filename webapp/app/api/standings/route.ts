@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { computeStandings } from "@/lib/standings";
 import type { StandingsApiResponse } from "@/lib/types";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export async function GET(): Promise<NextResponse<StandingsApiResponse>> {
   try {

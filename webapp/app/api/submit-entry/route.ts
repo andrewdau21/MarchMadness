@@ -5,6 +5,8 @@
  * NO DATABASE WRITES – entries are submitted via email only.
  */
 
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { query } from "@/lib/db";

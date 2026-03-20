@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import type { Team, TeamsApiResponse } from "@/lib/types";
 
-export const revalidate = 3600; // team list rarely changes
+export const dynamic = 'force-dynamic';
 
 export async function GET(): Promise<NextResponse<TeamsApiResponse>> {
   try {

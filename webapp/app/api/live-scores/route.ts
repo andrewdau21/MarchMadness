@@ -3,7 +3,7 @@ import { fetchScoreboard, fetchWinProbability, toLiveScoreGames } from "@/lib/es
 import { query } from "@/lib/db";
 import type { LiveScoresApiResponse } from "@/lib/types";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 interface DbEntry {
   Entry: string;
