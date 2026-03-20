@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import type { LiveScoreGame, LiveScoresApiResponse } from "@/lib/types";
 
 // ─── Team Entry Modal ─────────────────────────────────────────────────────────
@@ -150,57 +149,47 @@ function ScoreRow({
     <tr
       className="cursor-pointer hover:bg-white/5 transition-colors"
       onClick={onClick}
+      style={{ borderBottom: "1px solid var(--border)" }}
     >
       {/* Home team */}
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="relative w-9 h-9 shrink-0">
+      <td className="px-2 sm:px-4 py-2.5">
+        <div className="flex items-center gap-1.5">
+          <div className="relative w-8 h-8 shrink-0">
             {game.homeTeamLogo ? (
-              <Image
-                src={game.homeTeamLogo}
-                alt={game.homeTeamName}
-                fill
-                sizes="36px"
-                className="object-contain"
-              />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={game.homeTeamLogo} alt={game.homeTeamName} width={32} height={32}
+                className="object-contain w-8 h-8" loading="lazy" />
             ) : (
-              <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{ background: "var(--muted)", color: "var(--text-muted)" }}>
                 {game.homeTeamAbbr?.slice(0, 3)}
               </div>
             )}
-            {/* Seed badge */}
-            <span
-              className="absolute -top-1 -left-1 text-xs font-bold rounded px-1"
-              style={{
-                background: "var(--muted)",
-                color: "var(--text-muted)",
-                fontSize: "9px",
-                lineHeight: "14px",
-              }}
-            >
+            <span className="absolute -top-1 -left-1 font-bold rounded px-0.5"
+              style={{ background: "var(--muted)", color: "var(--text-muted)", fontSize: "8px", lineHeight: "13px" }}>
               {game.homeTeamSeed}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium truncate" style={{ color: "var(--text)" }}>
+            <p className="font-medium truncate hidden sm:block text-sm" style={{ color: "var(--text)" }}>
               {game.homeTeamName}
             </p>
+            <p className="font-medium text-xs sm:hidden" style={{ color: "var(--text)" }}>
+              {game.homeTeamAbbr}
+            </p>
             {homePct != null && (game.status === "in-progress" || game.status === "halftime") && (
-              <p className="text-xs" style={{ color: "var(--accent)" }}>
-                {homePct}% win
-              </p>
+              <p className="text-xs hidden sm:block" style={{ color: "var(--accent)" }}>{homePct}%</p>
             )}
           </div>
         </div>
       </td>
 
       {/* Score / status */}
-      <td className="px-2 py-3 text-center whitespace-nowrap">
+      <td className="px-1 py-2.5 text-center whitespace-nowrap">
         <div className="flex flex-col items-center gap-0.5">
           {game.status !== "scheduled" ? (
-            <span className="font-bold tabular-nums text-base" style={{ color: "var(--text)" }}>
-              {game.homeScore ?? "–"} – {game.awayScore ?? "–"}
+            <span className="font-bold tabular-nums text-sm" style={{ color: "var(--text)" }}>
+              {game.homeScore ?? "–"}–{game.awayScore ?? "–"}
             </span>
           ) : (
             <span className="font-medium text-xs" style={{ color: "var(--text-muted)" }}>vs</span>
@@ -210,43 +199,33 @@ function ScoreRow({
       </td>
 
       {/* Away team */}
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2 flex-row-reverse">
-          <div className="relative w-9 h-9 shrink-0">
+      <td className="px-2 sm:px-4 py-2.5">
+        <div className="flex items-center gap-1.5 flex-row-reverse">
+          <div className="relative w-8 h-8 shrink-0">
             {game.awayTeamLogo ? (
-              <Image
-                src={game.awayTeamLogo}
-                alt={game.awayTeamName}
-                fill
-                sizes="36px"
-                className="object-contain"
-              />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={game.awayTeamLogo} alt={game.awayTeamName} width={32} height={32}
+                className="object-contain w-8 h-8" loading="lazy" />
             ) : (
-              <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{ background: "var(--muted)", color: "var(--text-muted)" }}>
                 {game.awayTeamAbbr?.slice(0, 3)}
               </div>
             )}
-            <span
-              className="absolute -top-1 -right-1 text-xs font-bold rounded px-1"
-              style={{
-                background: "var(--muted)",
-                color: "var(--text-muted)",
-                fontSize: "9px",
-                lineHeight: "14px",
-              }}
-            >
+            <span className="absolute -top-1 -right-1 font-bold rounded px-0.5"
+              style={{ background: "var(--muted)", color: "var(--text-muted)", fontSize: "8px", lineHeight: "13px" }}>
               {game.awayTeamSeed}
             </span>
           </div>
           <div className="min-w-0 text-right">
-            <p className="text-sm font-medium truncate" style={{ color: "var(--text)" }}>
+            <p className="font-medium truncate hidden sm:block text-sm" style={{ color: "var(--text)" }}>
               {game.awayTeamName}
             </p>
+            <p className="font-medium text-xs sm:hidden" style={{ color: "var(--text)" }}>
+              {game.awayTeamAbbr}
+            </p>
             {awayPct != null && (game.status === "in-progress" || game.status === "halftime") && (
-              <p className="text-xs" style={{ color: "var(--accent)" }}>
-                {awayPct}% win
-              </p>
+              <p className="text-xs hidden sm:block" style={{ color: "var(--accent)" }}>{awayPct}%</p>
             )}
           </div>
         </div>
