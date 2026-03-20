@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchScoreboard, fetchWinProbability, toLiveScoreGames } from "@/lib/espn";
+import { fetchTodayScoreboard, fetchWinProbability, toLiveScoreGames } from "@/lib/espn";
 import { query } from "@/lib/db";
 import type { LiveScoresApiResponse } from "@/lib/types";
 
@@ -13,7 +13,7 @@ interface DbEntry {
 export async function GET(): Promise<NextResponse<LiveScoresApiResponse>> {
   try {
     // Fetch scoreboard
-    const games = await fetchScoreboard();
+    const games = await fetchTodayScoreboard();
 
     // Fetch win probabilities for in-progress games
     const inProgressGames = games.filter(

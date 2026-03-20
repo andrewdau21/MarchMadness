@@ -15,11 +15,18 @@ const ESPN_BASE = "http://site.api.espn.com/apis/site/v2/sports/basketball/mens-
  * Build the scoreboard URL for the current tournament year.
  * Tournament runs from roughly March 19 – April 14 each year.
  */
-function getScoreboardUrl(): string {
+function getScoreboardUrl(date?: string): string {
   const year = new Date().getFullYear();
-  const startDate = `${year}0319`;
-  const endDate = `${year}0414`;
-  return `${ESPN_BASE}/scoreboard?lang=en&region=us&limit=357&dates=${startDate}-${endDate}&groups=100`;
+  const dateParam = date ?? `${year}0319-${year}0414`;
+  return `${ESPN_BASE}/scoreboard?lang=en&region=us&limit=50&dates=${dateParam}&groups=100`;
+}
+
+function todayESPN(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}${m}${day}`;
 }
 
 function getSummaryUrl(gameId: string): string {
@@ -76,8 +83,12 @@ function extractTeamInfo(competitor: any, index: number) {
  * Fetch and parse the ESPN tournament scoreboard.
  * Filters out First Four play-in games (notes containing "First Four").
  */
-export async function fetchScoreboard(): Promise<EspnGame[]> {
-  const url = getScoreboardUrl();
+export async function fetchTodayScoreboard(): Promise<EspnGame[]> {
+  return fetchScoreboard(todayESPN());
+}
+
+export async function fetchScoreboard(date?: string): Promise<EspnGame[]> {
+  const url = getScoreboardUrl(date);
   const res = await fetch(url, { next: { revalidate: 60 } });
   if (!res.ok) {
     throw new Error(`ESPN scoreboard fetch failed: ${res.status}`);
