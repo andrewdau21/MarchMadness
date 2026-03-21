@@ -178,7 +178,7 @@ function ScoreRow({
               {game.homeTeamAbbr}
             </p>
             {homePct != null && (game.status === "in-progress" || game.status === "halftime") && (
-              <p className="text-xs hidden sm:block" style={{ color: "var(--accent)" }}>{homePct}%</p>
+              <p className="text-xs" style={{ color: "var(--accent)" }}>{homePct}%</p>
             )}
           </div>
         </div>
@@ -230,7 +230,7 @@ function ScoreRow({
               {game.awayTeamAbbr}
             </p>
             {awayPct != null && (game.status === "in-progress" || game.status === "halftime") && (
-              <p className="text-xs hidden sm:block" style={{ color: "var(--accent)" }}>{awayPct}%</p>
+              <p className="text-xs" style={{ color: "var(--accent)" }}>{awayPct}%</p>
             )}
           </div>
         </div>
