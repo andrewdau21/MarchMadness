@@ -1,9 +1,13 @@
-name: Build and Deploy (andrew-react-conversion)
+name: Build and Deploy
 
 on:
   push:
     branches:
-      - andrew-react-conversion
+      - main
+
+env:
+  REGISTRY: ${{ secrets.REGISTRY }}
+  IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
 
 jobs:
   build-and-push:
@@ -25,12 +29,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./webapp
-          file: ./webapp/Dockerfile
-          push: true
-          tags: registry.digitalocean.com/daucontainerregistry/andrew:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Build container image
+        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME) ./webapp
+
+      - name: Push image to DigitalOcean Container Registry
+        run: docker push $(echo $REGISTRY)/$(echo $IMAGE_NAME)
