@@ -9,6 +9,7 @@ export async function GET(): Promise<NextResponse> {
       SELECT
         b."Entry"      AS entry_name,
         s.tiebreaker_points,
+        s.email,
         b."Team1",  b."Team2",  b."Team3",  b."Team4",
         b."Team5",  b."Team6",  b."Team7",  b."Team8",
         b."Team9",  b."Team10", b."Team11", b."Team12",
