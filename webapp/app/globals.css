@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0f1117;
+  --bg-card: #161b27;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e8eaf0;
+  --text-muted: #6b7280;
+  --accent: #00a36c;
+  --muted: rgba(255, 255, 255, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+.mc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* ── Seed badge (top-left corner of logo) ───────────────── */
+.seed-badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 13px;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: var(--muted);
+  color: var(--text-muted);
+}
+
+/* ── Live pulsing dot ───────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.live-dot {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 3px; }
