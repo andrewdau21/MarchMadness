@@ -14,6 +14,7 @@ import {
   type ExpandedState,
 } from "@tanstack/react-table";
 import type { StandingsRow, StandingsApiResponse, StandingsTeamSlot } from "@/lib/types";
+import { BUDGET_CAP } from "@/lib/types";
 
 // ─── Expanded team grid ───────────────────────────────────────────────────────
 
@@ -188,6 +189,24 @@ const COLUMNS = [
       </span>
     ),
     size: 90,
+  }),
+
+  // Live $
+  col.display({
+    id: "live_money",
+    header: "Live $",
+    cell: ({ row }) => {
+      const deadMoney = row.original.teams.reduce(
+        (sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0
+      );
+      const remaining = BUDGET_CAP - deadMoney;
+      return (
+        <span className="tabular-nums text-xs font-medium" style={{ color: remaining > 0 ? "var(--accent)" : "var(--text-muted)" }}>
+          ${remaining}
+        </span>
+      );
+    },
+    size: 65,
   }),
 
   // Team count
