@@ -195,6 +195,11 @@ function ScoreRow({
             <span className="font-medium text-xs" style={{ color: "var(--text-muted)" }}>vs</span>
           )}
           <StatusBadge status={game.status} periodDisplay={game.periodDisplay} />
+          {game.broadcast && (
+            <span className="text-xs font-medium" style={{ color: "var(--text-muted)", fontSize: "9px" }}>
+              {game.broadcast}
+            </span>
+          )}
         </div>
       </td>
 

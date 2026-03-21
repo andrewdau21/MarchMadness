@@ -65,6 +65,7 @@ export interface EspnGame {
   clock: string;
   period: number;
   statusDetail: string;
+  broadcast: string;
   venue: string;
   isFirstFour: boolean;
 }
@@ -108,6 +109,7 @@ export interface LiveScoreGame {
   clock: string;
   period: number;
   periodDisplay: string;
+  broadcast: string;
   homeWinProbability: number | null;
 }
 

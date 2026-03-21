@@ -155,6 +155,16 @@ export async function fetchScoreboard(date?: string): Promise<EspnGame[]> {
     const status = normaliseStatus(statusDesc);
     const periodDisplay = buildPeriodDisplay(status, period, clock, statusDetail);
 
+    // Broadcast network — try geoBroadcasts first, fall back to broadcasts
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const geoBroadcasts: any[] = competition?.geoBroadcasts ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const broadcasts: any[] = competition?.broadcasts ?? [];
+    const broadcast: string =
+      geoBroadcasts.map((b: any) => b?.media?.shortName ?? b?.media?.name ?? "").filter(Boolean)[0] ??
+      broadcasts.map((b: any) => (b?.names ?? []).join(", ")).filter(Boolean)[0] ??
+      "";
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const homeScore = (homeComp as any)?.score != null ? parseFloat((homeComp as any).score) : null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -172,6 +182,7 @@ export async function fetchScoreboard(date?: string): Promise<EspnGame[]> {
       clock,
       period,
       statusDetail,
+      broadcast,
       venue: competition?.venue?.fullName ?? "",
       isFirstFour,
     });
@@ -244,6 +255,7 @@ export function toLiveScoreGames(
         clock: g.clock,
         period: g.period,
         periodDisplay,
+        broadcast: g.broadcast,
         homeWinProbability,
       };
     });
