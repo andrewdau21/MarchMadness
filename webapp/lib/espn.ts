@@ -22,29 +22,18 @@ function getScoreboardUrl(date?: string): string {
 }
 
 function todayESPN(): string {
-  // Use Pacific time — games don't roll over to the next slate until noon PT
+  // Use Pacific date — avoids flipping to tomorrow at UTC midnight (5 PM PT)
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Los_Angeles",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-    hour: "2-digit",
-    hour12: false,
   }).formatToParts(new Date());
 
   const get = (type: string) => parts.find(p => p.type === type)?.value ?? "0";
-  let year = parseInt(get("year"));
-  let month = parseInt(get("month"));
-  let day = parseInt(get("day"));
-  const hour = parseInt(get("hour"));
-
-  // Before noon PT, still show the previous day's games
-  if (hour < 12) {
-    const prev = new Date(year, month - 1, day - 1);
-    year = prev.getFullYear();
-    month = prev.getMonth() + 1;
-    day = prev.getDate();
-  }
+  const year = parseInt(get("year"));
+  const month = parseInt(get("month"));
+  const day = parseInt(get("day"));
 
   return `${year}${String(month).padStart(2, "0")}${String(day).padStart(2, "0")}`;
 }
