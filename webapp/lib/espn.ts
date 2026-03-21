@@ -22,11 +22,31 @@ function getScoreboardUrl(date?: string): string {
 }
 
 function todayESPN(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}${m}${day}`;
+  // Use Pacific time — games don't roll over to the next slate until noon PT
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? "0";
+  let year = parseInt(get("year"));
+  let month = parseInt(get("month"));
+  let day = parseInt(get("day"));
+  const hour = parseInt(get("hour"));
+
+  // Before noon PT, still show the previous day's games
+  if (hour < 12) {
+    const prev = new Date(year, month - 1, day - 1);
+    year = prev.getFullYear();
+    month = prev.getMonth() + 1;
+    day = prev.getDate();
+  }
+
+  return `${year}${String(month).padStart(2, "0")}${String(day).padStart(2, "0")}`;
 }
 
 function getSummaryUrl(gameId: string): string {
@@ -151,6 +171,7 @@ export async function fetchScoreboard(date?: string): Promise<EspnGame[]> {
       status,
       clock,
       period,
+      statusDetail,
       venue: competition?.venue?.fullName ?? "",
       isFirstFour,
     });
@@ -203,7 +224,7 @@ export function toLiveScoreGames(
     .filter((g) => !g.isFirstFour)
     .map((g) => {
       const homeWinProbability = probMap.get(g.id) ?? null;
-      const periodDisplay = buildPeriodDisplay(g.status, g.period, g.clock, "Scheduled");
+      const periodDisplay = buildPeriodDisplay(g.status, g.period, g.clock, g.statusDetail);
 
       return {
         id: g.id,

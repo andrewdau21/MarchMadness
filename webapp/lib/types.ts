@@ -64,6 +64,7 @@ export interface EspnGame {
   status: GameStatus;
   clock: string;
   period: number;
+  statusDetail: string;
   venue: string;
   isFirstFour: boolean;
 }
