@@ -19,58 +19,85 @@ import type { StandingsRow, StandingsApiResponse, StandingsTeamSlot } from "@/li
 
 function ExpandedTeamGrid({ teams }: { teams: StandingsTeamSlot[] }) {
   const validTeams = teams.filter((t) => t.teamName);
+  const alive = validTeams.filter((t) => t.opacity >= 0.5).length;
 
   return (
     <div
       className="px-5 py-4 border-t"
       style={{ background: "rgba(0,163,108,0.03)", borderColor: "var(--border)" }}
     >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+          Teams alive:{" "}
+          <span style={{ color: alive > 0 ? "var(--accent)" : "var(--text-muted)", fontWeight: 700 }}>
+            {alive}
+          </span>
+          <span>/{validTeams.length}</span>
+        </span>
+      </div>
       <div className="flex flex-wrap gap-3">
-        {validTeams.map((slot, idx) => (
-          <div
-            key={idx}
-            className="flex flex-col items-center gap-1"
-            style={{ opacity: slot.opacity, transition: "opacity 0.2s" }}
-            title={`${slot.teamName} — Seed ${slot.seed}${slot.opacity < 1 ? " (eliminated)" : ""}`}
-          >
-            <div className="relative w-14 h-14">
-              {slot.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={slot.logoUrl}
-                  alt={slot.teamName}
-                  width={56}
-                  height={56}
-                  className="object-contain w-14 h-14"
-                  loading="lazy"
-                />
-              ) : (
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ background: "var(--muted)", color: "var(--text-muted)" }}
-                >
-                  {slot.teamName.slice(0, 3).toUpperCase()}
-                </div>
-              )}
-              {/* Seed badge overlaid in top-left */}
-              <span className="seed-badge">{slot.seed}</span>
-            </div>
-            <span
-              style={{
-                fontSize: "9px",
-                color: slot.opacity < 1 ? "var(--text-muted)" : "var(--text)",
-                maxWidth: "56px",
-                textAlign: "center",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                display: "block",
-              }}
+        {validTeams.map((slot, idx) => {
+          const isEliminated = slot.opacity < 0.5;
+          return (
+            <div
+              key={idx}
+              className="flex flex-col items-center gap-1 relative"
+              title={`${slot.teamName} — Seed ${slot.seed}${isEliminated ? " — Eliminated" : ""}`}
             >
-              {slot.teamName}
-            </span>
-          </div>
-        ))}
+              <div
+                className="relative w-14 h-14"
+                style={{ opacity: isEliminated ? 0.28 : 1, transition: "opacity 0.2s" }}
+              >
+                {slot.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={slot.logoUrl}
+                    alt={slot.teamName}
+                    width={56}
+                    height={56}
+                    className="object-contain w-14 h-14"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div
+                    className="w-14 h-14 rounded-full flex items-center justify-center text-xs font-bold"
+                    style={{ background: "var(--muted)", color: "var(--text-muted)" }}
+                  >
+                    {slot.teamName.slice(0, 3).toUpperCase()}
+                  </div>
+                )}
+                <span className="seed-badge">{slot.seed}</span>
+              </div>
+              {isEliminated && (
+                <span
+                  className="absolute pointer-events-none flex items-center justify-center"
+                  style={{
+                    top: 0, left: "50%", transform: "translateX(-50%)",
+                    width: 56, height: 56,
+                    color: "#ef4444", fontSize: "34px", fontWeight: 900, lineHeight: 1,
+                  }}
+                >
+                  ✕
+                </span>
+              )}
+              <span
+                style={{
+                  fontSize: "9px",
+                  color: "var(--text-muted)",
+                  maxWidth: "56px",
+                  textAlign: "center",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: "block",
+                  opacity: isEliminated ? 0.28 : 1,
+                }}
+              >
+                {slot.teamName}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

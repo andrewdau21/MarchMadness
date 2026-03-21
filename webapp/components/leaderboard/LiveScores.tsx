@@ -236,7 +236,7 @@ function ScoreRow({
 
 // ─── Live Scores Table ────────────────────────────────────────────────────────
 
-export function LiveScores() {
+export function LiveScores({ autoRefresh = true }: { autoRefresh?: boolean }) {
   const [selectedGame, setSelectedGame] = useState<LiveScoreGame | null>(null);
 
   const { data, isLoading, isError, dataUpdatedAt } = useQuery<LiveScoresApiResponse>({
@@ -246,6 +246,7 @@ export function LiveScores() {
       if (!res.ok) throw new Error("Failed to fetch scores");
       return res.json();
     },
+    refetchInterval: autoRefresh ? 60_000 : false,
   });
 
   const games = data?.games ?? [];

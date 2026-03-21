@@ -1,6 +1,5 @@
 import { Header } from "@/components/layout/Header";
-import { StandingsTable } from "@/components/leaderboard/StandingsTable";
-import { LiveScores } from "@/components/leaderboard/LiveScores";
+import { LeaderboardClient } from "@/components/leaderboard/LeaderboardClient";
 import Link from "next/link";
 
 export const metadata = {
@@ -27,17 +26,7 @@ export default function LeaderboardPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Standings — takes 2/3 width on xl */}
-        <div className="xl:col-span-2">
-          <StandingsTable limit={15} />
-        </div>
-
-        {/* Live scores — takes 1/3 width on xl */}
-        <div className="xl:col-span-1">
-          <LiveScores />
-        </div>
-      </div>
+      <LeaderboardClient standingsLimit={15} />
     </div>
   );
 }

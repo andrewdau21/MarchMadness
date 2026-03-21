@@ -10,11 +10,22 @@ const MY_ENTRY_KEY = "marchcapness_my_entry";
 // ─── Team Logo Grid ───────────────────────────────────────────────────────────
 
 const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTeamSlot[] }) {
+  const total = teams.filter(s => s.teamName).length;
+  const alive = teams.filter(s => s.teamName && s.opacity >= 0.5).length;
   return (
     <div
       className="px-4 py-4 border-t"
       style={{ background: "rgba(0,163,108,0.04)", borderColor: "var(--border)" }}
     >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+          Teams alive:{" "}
+          <span style={{ color: alive > 0 ? "var(--accent)" : "var(--text-muted)", fontWeight: 700 }}>
+            {alive}
+          </span>
+          <span style={{ color: "var(--text-muted)" }}>/{total}</span>
+        </span>
+      </div>
       <div className="flex flex-wrap gap-3">
         {teams.map((slot, idx) => {
           if (!slot.teamName) return null;
@@ -22,11 +33,13 @@ const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTea
           return (
             <div
               key={idx}
-              className="flex flex-col items-center gap-1"
-              style={{ opacity: isEliminated ? 0.35 : 1, transition: "opacity 0.2s" }}
+              className="flex flex-col items-center gap-1 relative"
               title={`${slot.teamName} (Seed ${slot.seed})${isEliminated ? " — Eliminated" : ""}`}
             >
-              <div className="relative w-12 h-12">
+              <div
+                className="relative w-12 h-12"
+                style={{ opacity: isEliminated ? 0.28 : 1, transition: "opacity 0.2s" }}
+              >
                 {slot.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -46,14 +59,6 @@ const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTea
                   </div>
                 )}
                 <span className="seed-badge">{slot.seed}</span>
-                {isEliminated && (
-                  <span
-                    className="absolute inset-0 flex items-center justify-center font-black pointer-events-none"
-                    style={{ color: "#ef4444", fontSize: "28px", lineHeight: 1, opacity: 0.85 }}
-                  >
-                    ✕
-                  </span>
-                )}
                 {slot.isPlaying && (
                   <span
                     className="absolute -bottom-1 -right-1 text-white text-center font-bold live-dot"
@@ -69,6 +74,18 @@ const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTea
                   </span>
                 )}
               </div>
+              {isEliminated && (
+                <span
+                  className="absolute pointer-events-none flex items-center justify-center"
+                  style={{
+                    top: 0, left: "50%", transform: "translateX(-50%)",
+                    width: 48, height: 48,
+                    color: "#ef4444", fontSize: "30px", fontWeight: 900, lineHeight: 1,
+                  }}
+                >
+                  ✕
+                </span>
+              )}
               <span
                 className="text-center leading-tight"
                 style={{
@@ -78,6 +95,7 @@ const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTea
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
+                  opacity: isEliminated ? 0.28 : 1,
                 }}
               >
                 {slot.teamName}
@@ -195,7 +213,7 @@ const StandingsRowItem = memo(function StandingsRowItem({
 
 // ─── Standings Table ──────────────────────────────────────────────────────────
 
-export function StandingsTable({ limit }: { limit?: number }) {
+export function StandingsTable({ limit, autoRefresh = true }: { limit?: number; autoRefresh?: boolean }) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [myEntry, setMyEntry] = useState<string | null>(null);
@@ -215,6 +233,7 @@ export function StandingsTable({ limit }: { limit?: number }) {
       return res.json();
     },
     staleTime: 60_000,
+    refetchInterval: autoRefresh ? 60_000 : false,
   });
 
   const allRows = data?.standings ?? [];
