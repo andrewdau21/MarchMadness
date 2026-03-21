@@ -18,12 +18,13 @@ const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTea
       <div className="flex flex-wrap gap-3">
         {teams.map((slot, idx) => {
           if (!slot.teamName) return null;
+          const isEliminated = slot.opacity < 0.5;
           return (
             <div
               key={idx}
               className="flex flex-col items-center gap-1"
-              style={{ opacity: slot.opacity, transition: "opacity 0.2s" }}
-              title={`${slot.teamName} (Seed ${slot.seed})`}
+              style={{ opacity: isEliminated ? 0.35 : 1, transition: "opacity 0.2s" }}
+              title={`${slot.teamName} (Seed ${slot.seed})${isEliminated ? " — Eliminated" : ""}`}
             >
               <div className="relative w-12 h-12">
                 {slot.logoUrl ? (
@@ -45,6 +46,14 @@ const TeamLogoGrid = memo(function TeamLogoGrid({ teams }: { teams: StandingsTea
                   </div>
                 )}
                 <span className="seed-badge">{slot.seed}</span>
+                {isEliminated && (
+                  <span
+                    className="absolute inset-0 flex items-center justify-center font-black pointer-events-none"
+                    style={{ color: "#ef4444", fontSize: "28px", lineHeight: 1, opacity: 0.85 }}
+                  >
+                    ✕
+                  </span>
+                )}
                 {slot.isPlaying && (
                   <span
                     className="absolute -bottom-1 -right-1 text-white text-center font-bold live-dot"
