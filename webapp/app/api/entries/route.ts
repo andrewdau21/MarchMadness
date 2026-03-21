@@ -4,7 +4,8 @@ import { query } from "@/lib/db";
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const apiKey = request.headers.get("x-api-key");
+  const { searchParams } = new URL(request.url);
+  const apiKey = request.headers.get("x-api-key") ?? searchParams.get("key");
   if (!apiKey || apiKey !== process.env.ENTRIES_API_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
