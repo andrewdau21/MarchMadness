@@ -19,8 +19,7 @@
 
 import { query } from "./db";
 import { fetchScoreboard, fetchWinProbability } from "./espn";
-import type { BracketEntry, StandingsRow, StandingsTeamSlot } from "./types";
-import { SEED_COSTS } from "./types";
+import type { StandingsRow, StandingsTeamSlot } from "./types";
 
 // ─── DB Queries ───────────────────────────────────────────────────────────────
 
@@ -62,6 +61,16 @@ async function fetchMasterTeams(): Promise<DbMasterTeam[]> {
   return query<DbMasterTeam>('SELECT DISTINCT * FROM all_teams');
 }
 
+interface DbTeamCost {
+  team_name: string;
+  cost: number;
+}
+
+async function fetchTeamCosts(): Promise<Map<string, number>> {
+  const rows = await query<DbTeamCost>('SELECT team_name, cost FROM march_madness_teams');
+  return new Map(rows.map(r => [r.team_name, r.cost]));
+}
+
 // ─── Win / Loss Tracking ──────────────────────────────────────────────────────
 
 interface TeamRecord {
@@ -75,17 +84,29 @@ interface TeamRecord {
 
 export async function computeStandings(): Promise<StandingsRow[]> {
   // Fetch everything in parallel where possible
-  const [bracketEntries, tiebreakers, masterTeams, games] = await Promise.all([
+  const [bracketEntries, tiebreakers, masterTeams, games, teamCostMap] = await Promise.all([
     fetchBracketEntries(),
     fetchTiebreakers(),
     fetchMasterTeams(),
     fetchScoreboard(),
+    fetchTeamCosts(),
   ]);
 
   // Build a map: team shortDisplayName → master record (for logos / seeds)
   const masterByName = new Map<string, DbMasterTeam>();
   for (const t of masterTeams) {
     if (t.name) masterByName.set(t.name, t);
+  }
+
+  // Build ESPN team ID → canonical DB name mapping (resolves name mismatches)
+  const espnIdToDbName = new Map<string, string>();
+  for (const t of masterTeams) {
+    if (t.espn_id && t.name) espnIdToDbName.set(t.espn_id, t.name);
+  }
+
+  // Helper: resolve ESPN team info to the canonical DB team name
+  function resolveEspnName(team: { id: string; shortDisplayName: string }): string {
+    return espnIdToDbName.get(team.id) ?? team.shortDisplayName;
   }
 
   // Track which games are in-progress so we can fetch win probabilities
@@ -115,8 +136,8 @@ export async function computeStandings(): Promise<StandingsRow[]> {
   for (const game of games) {
     if (game.isFirstFour) continue;
 
-    const homeTeam = game.homeTeam.shortDisplayName;
-    const awayTeam = game.awayTeam.shortDisplayName;
+    const homeTeam = resolveEspnName(game.homeTeam);
+    const awayTeam = resolveEspnName(game.awayTeam);
 
     if (game.status === "final") {
       const homeScore = game.homeScore ?? 0;
@@ -165,18 +186,12 @@ export async function computeStandings(): Promise<StandingsRow[]> {
     if (game.isFirstFour) continue;
     const home = game.homeTeam;
     const away = game.awayTeam;
-    if (!teamLogoMap.has(home.shortDisplayName) && home.logo) {
-      teamLogoMap.set(home.shortDisplayName, home.logo);
-    }
-    if (!teamSeedMap.has(home.shortDisplayName)) {
-      teamSeedMap.set(home.shortDisplayName, home.seed);
-    }
-    if (!teamLogoMap.has(away.shortDisplayName) && away.logo) {
-      teamLogoMap.set(away.shortDisplayName, away.logo);
-    }
-    if (!teamSeedMap.has(away.shortDisplayName)) {
-      teamSeedMap.set(away.shortDisplayName, away.seed);
-    }
+    const homeName = resolveEspnName(home);
+    const awayName = resolveEspnName(away);
+    if (!teamLogoMap.has(homeName) && home.logo) teamLogoMap.set(homeName, home.logo);
+    if (!teamSeedMap.has(homeName)) teamSeedMap.set(homeName, home.seed);
+    if (!teamLogoMap.has(awayName) && away.logo) teamLogoMap.set(awayName, away.logo);
+    if (!teamSeedMap.has(awayName)) teamSeedMap.set(awayName, away.seed);
   }
 
   // Build tiebreaker map
@@ -214,7 +229,7 @@ export async function computeStandings(): Promise<StandingsRow[]> {
       const logoUrl = teamLogoMap.get(teamName) ?? "";
       const seed = teamSeedMap.get(teamName) ?? 0;
 
-      const cost = SEED_COSTS[seed] ?? 0;
+      const cost = teamCostMap.get(teamName) ?? 0;
       teamSlots.push({ teamName, opacity, logoUrl, seed, isPlaying, cost });
     }
 

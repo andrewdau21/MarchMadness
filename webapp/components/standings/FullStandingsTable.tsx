@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   useReactTable,
@@ -100,6 +100,239 @@ function ExpandedTeamGrid({ teams }: { teams: StandingsTeamSlot[] }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// ─── Team Filter Panel ────────────────────────────────────────────────────────
+
+interface UniqueTeam {
+  teamName: string;
+  logoUrl: string;
+  seed: number;
+  isEliminated: boolean;
+}
+
+function TeamChip({
+  team,
+  selected,
+  onToggle,
+}: {
+  team: UniqueTeam;
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      title={`${team.teamName}${team.isEliminated ? " — Eliminated" : ""}`}
+      style={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "4px",
+        padding: "6px",
+        borderRadius: "10px",
+        border: selected ? "2px solid var(--accent)" : "2px solid transparent",
+        background: selected ? "rgba(0,163,108,0.12)" : "var(--muted)",
+        cursor: "pointer",
+        transition: "all 0.15s ease",
+        boxShadow: selected ? "0 0 0 1px var(--accent)" : "none",
+        minWidth: "52px",
+      }}
+    >
+      <div style={{ position: "relative", width: 36, height: 36 }}>
+        <div style={{ opacity: team.isEliminated ? 0.28 : 1, width: 36, height: 36 }}>
+          {team.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={team.logoUrl}
+              alt={team.teamName}
+              width={36}
+              height={36}
+              style={{ objectFit: "contain", width: 36, height: 36 }}
+              loading="lazy"
+            />
+          ) : (
+            <div
+              style={{
+                width: 36, height: 36, borderRadius: "50%",
+                background: "var(--border)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "9px", fontWeight: 700, color: "var(--text-muted)",
+              }}
+            >
+              {team.teamName.slice(0, 3).toUpperCase()}
+            </div>
+          )}
+        </div>
+        <span
+          style={{
+            position: "absolute", bottom: -2, right: -4,
+            background: "var(--accent)", color: "#fff",
+            fontSize: "8px", fontWeight: 700,
+            borderRadius: "4px", padding: "0 3px", lineHeight: "13px",
+          }}
+        >
+          {team.seed}
+        </span>
+        {team.isEliminated && (
+          <span
+            style={{
+              position: "absolute", top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+              color: "#ef4444", fontSize: "22px", fontWeight: 900,
+              lineHeight: 1, pointerEvents: "none",
+            }}
+          >
+            ✕
+          </span>
+        )}
+      </div>
+      <span
+        style={{
+          fontSize: "8px",
+          color: selected ? "var(--accent)" : "var(--text-muted)",
+          fontWeight: selected ? 700 : 400,
+          maxWidth: "48px",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          textAlign: "center",
+        }}
+      >
+        {team.teamName}
+      </span>
+    </button>
+  );
+}
+
+function TeamFilterPanel({
+  teams,
+  selected,
+  onToggle,
+  onClear,
+}: {
+  teams: UniqueTeam[];
+  selected: Set<string>;
+  onToggle: (name: string) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const alive = teams.filter((t) => !t.isEliminated);
+  const eliminated = teams.filter((t) => t.isEliminated);
+
+  return (
+    <div style={{ borderBottom: "1px solid var(--border)" }}>
+      {/* Header toggle */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center",
+          justifyContent: "space-between", padding: "10px 20px",
+          background: "none", border: "none", cursor: "pointer", color: "var(--text)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "12px", fontWeight: 600 }}>Filter by Team</span>
+          {selected.size > 0 && (
+            <span
+              style={{
+                background: "var(--accent)", color: "#fff",
+                fontSize: "10px", fontWeight: 700,
+                borderRadius: "999px", padding: "1px 7px",
+              }}
+            >
+              {selected.size} selected
+            </span>
+          )}
+          {!open && selected.size > 0 && (
+            <div style={{ display: "flex", gap: "2px", alignItems: "center" }}>
+              {teams.filter((t) => selected.has(t.teamName)).slice(0, 5).map((t) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={t.teamName}
+                  src={t.logoUrl}
+                  alt={t.teamName}
+                  width={20}
+                  height={20}
+                  style={{ objectFit: "contain", opacity: t.isEliminated ? 0.4 : 1 }}
+                  loading="lazy"
+                />
+              ))}
+              {selected.size > 5 && (
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", marginLeft: 2 }}>
+                  +{selected.size - 5}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {selected.size > 0 && (
+            <span
+              role="button"
+              onClick={(e) => { e.stopPropagation(); onClear(); }}
+              style={{
+                fontSize: "10px", color: "var(--accent)", fontWeight: 600,
+                padding: "2px 8px", borderRadius: "6px",
+                background: "rgba(0,163,108,0.1)", cursor: "pointer",
+              }}
+            >
+              Clear
+            </span>
+          )}
+          <span
+            style={{
+              fontSize: "16px", color: "var(--text-muted)",
+              transition: "transform 0.2s",
+              transform: open ? "rotate(90deg)" : "rotate(0deg)",
+              display: "block", lineHeight: 1,
+            }}
+          >
+            ›
+          </span>
+        </div>
+      </button>
+
+      {/* Logo grid */}
+      {open && (
+        <div style={{ padding: "0 20px 16px" }}>
+          <div style={{ marginBottom: "12px" }}>
+            <div
+              style={{
+                fontSize: "10px", fontWeight: 600, textTransform: "uppercase",
+                letterSpacing: "0.06em", color: "var(--accent)", marginBottom: "8px",
+              }}
+            >
+              Still Alive — {alive.length} teams
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              {alive.map((t) => (
+                <TeamChip key={t.teamName} team={t} selected={selected.has(t.teamName)} onToggle={() => onToggle(t.teamName)} />
+              ))}
+            </div>
+          </div>
+          {eliminated.length > 0 && (
+            <div>
+              <div
+                style={{
+                  fontSize: "10px", fontWeight: 600, textTransform: "uppercase",
+                  letterSpacing: "0.06em", color: "var(--text-muted)", marginBottom: "8px",
+                }}
+              >
+                Eliminated — {eliminated.length} teams
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {eliminated.map((t) => (
+                  <TeamChip key={t.teamName} team={t} selected={selected.has(t.teamName)} onToggle={() => onToggle(t.teamName)} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -232,6 +465,7 @@ export function FullStandingsTable() {
   const [sorting, setSorting] = useState<SortingState>([{ id: "live_wins", desc: true }]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedTeams, setSelectedTeams] = useState<Set<string>>(new Set());
 
   const { data, isLoading, isError, dataUpdatedAt } = useQuery<StandingsApiResponse>({
     queryKey: ["standings"],
@@ -247,15 +481,57 @@ export function FullStandingsTable() {
   const rows = data?.standings ?? [];
   const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : null;
 
+  // Derive unique teams: alive first sorted by seed, then eliminated
+  const uniqueTeams = useMemo<UniqueTeam[]>(() => {
+    const map = new Map<string, UniqueTeam>();
+    for (const row of rows) {
+      for (const slot of row.teams) {
+        if (!slot.teamName || map.has(slot.teamName)) continue;
+        map.set(slot.teamName, {
+          teamName: slot.teamName,
+          logoUrl: slot.logoUrl,
+          seed: slot.seed,
+          isEliminated: slot.opacity < 0.5,
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.isEliminated !== b.isEliminated) return a.isEliminated ? 1 : -1;
+      return a.seed - b.seed;
+    });
+  }, [rows]);
+
+  // Filter rows by entry name + selected teams
+  const filteredRows = useMemo(() => {
+    let result = rows;
+    if (globalFilter) {
+      result = result.filter((r) =>
+        r.entry_name.toLowerCase().includes(globalFilter.toLowerCase())
+      );
+    }
+    if (selectedTeams.size > 0) {
+      result = result.filter((r) =>
+        Array.from(selectedTeams).every((name) =>
+          r.teams.some((t) => t.teamName === name)
+        )
+      );
+    }
+    return result;
+  }, [rows, globalFilter, selectedTeams]);
+
+  const toggleTeam = (name: string) =>
+    setSelectedTeams((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+
   const table = useReactTable({
-    data: rows,
+    data: filteredRows,
     columns: COLUMNS,
-    state: { sorting, expanded, globalFilter },
+    state: { sorting, expanded },
     onSortingChange: setSorting,
     onExpandedChange: setExpanded,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, _columnId, value: string) =>
-      row.original.entry_name.toLowerCase().includes(value.toLowerCase()),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
@@ -295,7 +571,8 @@ export function FullStandingsTable() {
             Full Standings
           </h2>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {table.getFilteredRowModel().rows.length} entries
+            {table.getRowModel().rows.length}
+            {selectedTeams.size > 0 || globalFilter ? ` of ${rows.length}` : ""} entries
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -318,6 +595,16 @@ export function FullStandingsTable() {
           />
         </div>
       </div>
+
+      {/* Team filter panel */}
+      {uniqueTeams.length > 0 && (
+        <TeamFilterPanel
+          teams={uniqueTeams}
+          selected={selectedTeams}
+          onToggle={toggleTeam}
+          onClear={() => setSelectedTeams(new Set())}
+        />
+      )}
 
       {/* Legend */}
       <div
@@ -388,6 +675,18 @@ export function FullStandingsTable() {
             ))}
           </tbody>
         </table>
+
+        {table.getRowModel().rows.length === 0 && (
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+            No entries match your filters.{" "}
+            <button
+              onClick={() => { setGlobalFilter(""); setSelectedTeams(new Set()); }}
+              style={{ color: "var(--accent)", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
