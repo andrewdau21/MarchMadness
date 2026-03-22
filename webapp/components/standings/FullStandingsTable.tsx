@@ -500,7 +500,7 @@ function makeColumns(rankMap: Map<string, string>, scoreMap?: Map<string, number
 // ─── Full Standings Table ─────────────────────────────────────────────────────
 
 export function FullStandingsTable() {
-  const [sorting, setSorting] = useState<SortingState>([{ id: "rank", desc: false }]);
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [selectedTeams, setSelectedTeams] = useState<Set<string>>(new Set());
@@ -619,7 +619,7 @@ export function FullStandingsTable() {
     });
   }, [rows]);
 
-  // Filter rows only — TanStack handles all sorting
+  // Filter + pre-sort by active rank mode (TanStack sort overrides when user clicks a header)
   const filteredRows = useMemo(() => {
     let result = rows;
     if (globalFilter) {
@@ -634,8 +634,25 @@ export function FullStandingsTable() {
         )
       );
     }
+    const liveMoney = (r: StandingsRow) =>
+      BUDGET_CAP - r.teams.reduce((sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0);
+    if (rankMode === "enhanced") {
+      result = [...result].sort(
+        (a, b) => (enhancedScoreMap.get(b.entry_name) ?? 0) - (enhancedScoreMap.get(a.entry_name) ?? 0)
+      );
+    } else if (rankMode === "money") {
+      result = [...result].sort((a, b) => {
+        if (b.live_wins !== a.live_wins) return b.live_wins - a.live_wins;
+        return liveMoney(b) - liveMoney(a);
+      });
+    } else {
+      result = [...result].sort((a, b) => {
+        if (b.live_wins !== a.live_wins) return b.live_wins - a.live_wins;
+        return liveMoney(b) - liveMoney(a);
+      });
+    }
     return result;
-  }, [rows, globalFilter, selectedTeams]);
+  }, [rows, globalFilter, selectedTeams, rankMode, enhancedScoreMap]);
 
   const toggleTeam = (name: string) =>
     setSelectedTeams((prev) => {
@@ -702,7 +719,7 @@ export function FullStandingsTable() {
             {(["standard", "money", "enhanced"] as const).map((mode) => (
               <button
                 key={mode}
-                onClick={() => { setRankMode(mode); setSorting([{ id: "rank", desc: false }]); }}
+                onClick={() => { setRankMode(mode); setSorting([]); }}
                 title={
                   mode === "money" ? "Rank by Live Wins then Live $, ties only when both match" :
                   mode === "enhanced" ? "Score = 50% Live Wins + 30% Live $ + 20% Teams Alive" :
