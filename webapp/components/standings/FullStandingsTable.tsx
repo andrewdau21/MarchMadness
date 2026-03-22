@@ -341,7 +341,7 @@ function TeamFilterPanel({
 
 const col = createColumnHelper<StandingsRow>();
 
-function makeColumns(rankMap: Map<string, string>) {
+function makeColumns(rankMap: Map<string, string>, scoreMap?: Map<string, number>) {
   return [
   col.display({
     id: "expander",
@@ -366,6 +366,7 @@ function makeColumns(rankMap: Map<string, string>) {
   col.display({
     id: "rank",
     header: "#",
+    enableSorting: true,
     cell: ({ row }) => {
       const rank = rankMap.get(row.original.entry_name) ?? "";
       const isTie = rank.startsWith("T");
@@ -374,6 +375,11 @@ function makeColumns(rankMap: Map<string, string>) {
           {rank}
         </span>
       );
+    },
+    sortingFn: (a, b) => {
+      const ra = parseInt((rankMap.get(a.original.entry_name) ?? "").replace("T", ""), 10);
+      const rb = parseInt((rankMap.get(b.original.entry_name) ?? "").replace("T", ""), 10);
+      return ra - rb;
     },
     size: 40,
   }),
@@ -433,6 +439,7 @@ function makeColumns(rankMap: Map<string, string>) {
   col.display({
     id: "live_money",
     header: "Live $",
+    enableSorting: true,
     cell: ({ row }) => {
       const deadMoney = row.original.teams.reduce(
         (sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0
@@ -444,13 +451,18 @@ function makeColumns(rankMap: Map<string, string>) {
         </span>
       );
     },
+    sortingFn: (a, b) => {
+      const liveMoney = (r: StandingsRow) => BUDGET_CAP - r.teams.reduce((sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0);
+      return liveMoney(a.original) - liveMoney(b.original);
+    },
     size: 65,
   }),
 
   // Team count
   col.display({
     id: "teams_count",
-    header: "Teams",
+    header: "Alive",
+    enableSorting: true,
     cell: ({ row }) => {
       const active = row.original.teams.filter((t) => t.teamName && t.opacity >= 1).length;
       const total = row.original.teams.filter((t) => t.teamName).length;
@@ -460,18 +472,39 @@ function makeColumns(rankMap: Map<string, string>) {
         </span>
       );
     },
+    sortingFn: (a, b) => {
+      const alive = (r: StandingsRow) => r.teams.filter((t) => t.teamName && t.opacity >= 1).length;
+      return alive(a.original) - alive(b.original);
+    },
     size: 70,
   }),
+  // Enhanced score column — only shown in enhanced mode
+  ...(scoreMap ? [col.display({
+    id: "enhanced_score",
+    header: "Score ✦",
+    enableSorting: true,
+    cell: ({ row }) => {
+      const score = scoreMap.get(row.original.entry_name) ?? 0;
+      return (
+        <span className="tabular-nums text-xs font-bold" style={{ color: "var(--accent)" }}>
+          {score.toFixed(1)}
+        </span>
+      );
+    },
+    sortingFn: (a, b) => (scoreMap.get(a.original.entry_name) ?? 0) - (scoreMap.get(b.original.entry_name) ?? 0),
+    size: 75,
+  })] : []),
   ]; // end makeColumns
 }
 
 // ─── Full Standings Table ─────────────────────────────────────────────────────
 
 export function FullStandingsTable() {
-  const [sorting, setSorting] = useState<SortingState>([{ id: "live_wins", desc: true }]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "rank", desc: false }]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [selectedTeams, setSelectedTeams] = useState<Set<string>>(new Set());
+  const [rankMode, setRankMode] = useState<"standard" | "money" | "enhanced">("standard");
 
   const { data, isLoading, isError, dataUpdatedAt } = useQuery<StandingsApiResponse>({
     queryKey: ["standings"],
@@ -502,7 +535,69 @@ export function FullStandingsTable() {
     return map;
   }, [rows]);
 
-  const columns = useMemo(() => makeColumns(rankMap), [rankMap]);
+  // Enhanced score: 50% live wins + 30% live $ + 20% teams alive (all normalized)
+  const { enhancedScoreMap, enhancedRankMap } = useMemo(() => {
+    const liveMoney = (r: StandingsRow) =>
+      BUDGET_CAP - r.teams.reduce((sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0);
+    const aliveCount = (r: StandingsRow) =>
+      r.teams.filter((t) => t.teamName && t.opacity >= 0.5).length;
+
+    const maxWins = Math.max(...rows.map((r) => r.live_wins), 0.001);
+    const maxMoney = Math.max(...rows.map(liveMoney), 0.001);
+    const maxAlive = Math.max(...rows.map(aliveCount), 0.001);
+
+    const scoreMap = new Map<string, number>();
+    for (const r of rows) {
+      const score =
+        (r.live_wins / maxWins) * 50 +
+        (liveMoney(r) / maxMoney) * 30 +
+        (aliveCount(r) / maxAlive) * 20;
+      scoreMap.set(r.entry_name, Math.round(score * 10) / 10);
+    }
+
+    // Sort rows by score desc, compute tie ranks
+    const sorted = [...rows].sort((a, b) => (scoreMap.get(b.entry_name) ?? 0) - (scoreMap.get(a.entry_name) ?? 0));
+    const rMap = new Map<string, string>();
+    let i = 0;
+    while (i < sorted.length) {
+      const score = scoreMap.get(sorted[i].entry_name) ?? 0;
+      let j = i;
+      while (j < sorted.length && (scoreMap.get(sorted[j].entry_name) ?? 0) === score) j++;
+      const label = j - i > 1 ? `T${i + 1}` : `${i + 1}`;
+      for (let k = i; k < j; k++) rMap.set(sorted[k].entry_name, label);
+      i = j;
+    }
+
+    return { enhancedScoreMap: scoreMap, enhancedRankMap: rMap };
+  }, [rows]);
+
+  // Live $ rank: sort by live_wins DESC → live $ DESC, ties only when BOTH match
+  const moneyRankMap = useMemo(() => {
+    const liveMoney = (r: StandingsRow) =>
+      BUDGET_CAP - r.teams.reduce((sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0);
+    const sorted = [...rows].sort((a, b) => {
+      if (b.live_wins !== a.live_wins) return b.live_wins - a.live_wins;
+      return liveMoney(b) - liveMoney(a);
+    });
+    const map = new Map<string, string>();
+    let i = 0;
+    while (i < sorted.length) {
+      const lw = sorted[i].live_wins;
+      const lm = liveMoney(sorted[i]);
+      let j = i;
+      while (j < sorted.length && sorted[j].live_wins === lw && liveMoney(sorted[j]) === lm) j++;
+      const label = j - i > 1 ? `T${i + 1}` : `${i + 1}`;
+      for (let k = i; k < j; k++) map.set(sorted[k].entry_name, label);
+      i = j;
+    }
+    return map;
+  }, [rows]);
+
+  const activeRankMap = rankMode === "enhanced" ? enhancedRankMap : rankMode === "money" ? moneyRankMap : rankMap;
+  const columns = useMemo(
+    () => makeColumns(activeRankMap, rankMode === "enhanced" ? enhancedScoreMap : undefined),
+    [activeRankMap, rankMode, enhancedScoreMap]
+  );
 
   // Derive unique teams: alive first sorted by seed, then eliminated
   const uniqueTeams = useMemo<UniqueTeam[]>(() => {
@@ -524,7 +619,7 @@ export function FullStandingsTable() {
     });
   }, [rows]);
 
-  // Filter rows by entry name + selected teams
+  // Filter rows only — TanStack handles all sorting
   const filteredRows = useMemo(() => {
     let result = rows;
     if (globalFilter) {
@@ -589,7 +684,7 @@ export function FullStandingsTable() {
         className="px-5 py-3 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3"
         style={{ borderColor: "var(--border)" }}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
           <h2 className="font-semibold text-sm" style={{ color: "var(--text)" }}>
             Full Standings
           </h2>
@@ -597,6 +692,33 @@ export function FullStandingsTable() {
             {table.getRowModel().rows.length}
             {selectedTeams.size > 0 || globalFilter ? ` of ${rows.length}` : ""} entries
           </span>
+          {/* Rank mode toggle */}
+          <div
+            style={{
+              display: "flex", borderRadius: "8px", overflow: "hidden",
+              border: "1px solid var(--border)", fontSize: "11px", fontWeight: 600,
+            }}
+          >
+            {(["standard", "money", "enhanced"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => { setRankMode(mode); setSorting([{ id: "rank", desc: false }]); }}
+                title={
+                  mode === "money" ? "Rank by Live Wins then Live $, ties only when both match" :
+                  mode === "enhanced" ? "Score = 50% Live Wins + 30% Live $ + 20% Teams Alive" :
+                  "Rank by Live Wins (ties on live wins)"
+                }
+                style={{
+                  padding: "3px 10px", border: "none", cursor: "pointer",
+                  background: rankMode === mode ? "var(--accent)" : "var(--muted)",
+                  color: rankMode === mode ? "#fff" : "var(--text-muted)",
+                  transition: "all 0.15s",
+                }}
+              >
+                {mode === "standard" ? "Standard" : mode === "money" ? "Live $" : "Enhanced ✦"}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {lastUpdated && (
@@ -644,12 +766,16 @@ export function FullStandingsTable() {
 
       {/* Legend */}
       <div
-        className="px-5 py-2 border-b text-xs flex gap-4"
+        className="px-5 py-2 border-b text-xs flex flex-wrap gap-4"
         style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
       >
-        <span>
-          <span style={{ color: "var(--accent)" }}>Total</span> = wins + live fractional wins
-        </span>
+        {rankMode === "enhanced" ? (
+          <span><span style={{ color: "var(--accent)" }}>Enhanced ✦</span> = 50% Live Wins + 30% Live $ + 20% Teams Alive (normalized 0–100)</span>
+        ) : rankMode === "money" ? (
+          <span><span style={{ color: "var(--accent)" }}>Live $</span> rank = Live Wins → Live $ · ties only when both match exactly</span>
+        ) : (
+          <span><span style={{ color: "var(--accent)" }}>Total</span> = wins + live fractional wins · ties on Live Wins</span>
+        )}
         <span>Teams: <span style={{ color: "var(--accent)" }}>active</span>/total (faded = eliminated)</span>
       </div>
 
