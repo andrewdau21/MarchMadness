@@ -341,7 +341,8 @@ function TeamFilterPanel({
 
 const col = createColumnHelper<StandingsRow>();
 
-const COLUMNS = [
+function makeColumns(rankMap: Map<string, string>) {
+  return [
   col.display({
     id: "expander",
     header: () => null,
@@ -365,11 +366,15 @@ const COLUMNS = [
   col.display({
     id: "rank",
     header: "#",
-    cell: ({ row }) => (
-      <span className="font-bold tabular-nums text-sm" style={{ color: "var(--text-muted)" }}>
-        {row.index + 1}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const rank = rankMap.get(row.original.entry_name) ?? "";
+      const isTie = rank.startsWith("T");
+      return (
+        <span className="font-bold tabular-nums text-sm" style={{ color: isTie ? "var(--accent)" : "var(--text-muted)" }}>
+          {rank}
+        </span>
+      );
+    },
     size: 40,
   }),
 
@@ -457,7 +462,8 @@ const COLUMNS = [
     },
     size: 70,
   }),
-];
+  ]; // end makeColumns
+}
 
 // ─── Full Standings Table ─────────────────────────────────────────────────────
 
@@ -480,6 +486,23 @@ export function FullStandingsTable() {
 
   const rows = data?.standings ?? [];
   const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : null;
+
+  // Compute global tie-aware ranks from unfiltered sorted rows
+  const rankMap = useMemo(() => {
+    const map = new Map<string, string>();
+    let i = 0;
+    while (i < rows.length) {
+      const lw = rows[i].live_wins;
+      let j = i;
+      while (j < rows.length && rows[j].live_wins === lw) j++;
+      const label = j - i > 1 ? `T${i + 1}` : `${i + 1}`;
+      for (let k = i; k < j; k++) map.set(rows[k].entry_name, label);
+      i = j;
+    }
+    return map;
+  }, [rows]);
+
+  const columns = useMemo(() => makeColumns(rankMap), [rankMap]);
 
   // Derive unique teams: alive first sorted by seed, then eliminated
   const uniqueTeams = useMemo<UniqueTeam[]>(() => {
@@ -528,7 +551,7 @@ export function FullStandingsTable() {
 
   const table = useReactTable({
     data: filteredRows,
-    columns: COLUMNS,
+    columns,
     state: { sorting, expanded },
     onSortingChange: setSorting,
     onExpandedChange: setExpanded,
@@ -581,18 +604,31 @@ export function FullStandingsTable() {
               Updated {lastUpdated}
             </span>
           )}
-          <input
-            value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            placeholder="Search entry..."
-            className="px-3 py-1.5 rounded-lg text-xs border"
-            style={{
-              background: "var(--bg)",
-              borderColor: "var(--border)",
-              color: "var(--text)",
-              width: "180px",
-            }}
-          />
+          <div className="relative">
+            <input
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Search entry..."
+              className="px-3 py-1.5 rounded-lg text-xs border"
+              style={{
+                background: "var(--bg)",
+                borderColor: "var(--border)",
+                color: "var(--text)",
+                width: "180px",
+                paddingRight: globalFilter ? "24px" : undefined,
+              }}
+            />
+            {globalFilter && (
+              <button
+                onClick={() => setGlobalFilter("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs leading-none"
+                style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -666,7 +702,7 @@ export function FullStandingsTable() {
                 </tr>
                 {row.getIsExpanded() && (
                   <tr key={`${row.id}-exp`}>
-                    <td colSpan={COLUMNS.length} style={{ padding: 0 }}>
+                    <td colSpan={columns.length} style={{ padding: 0 }}>
                       <ExpandedTeamGrid teams={row.original.teams} />
                     </td>
                   </tr>

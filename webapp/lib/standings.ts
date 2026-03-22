@@ -244,11 +244,14 @@ export async function computeStandings(): Promise<StandingsRow[]> {
     };
   });
 
-  // Sort: total wins DESC, tiebreaker DESC
+  // Sort: live_wins DESC → live $ remaining DESC → tiebreaker DESC
+  const liveMoney = (r: StandingsRow) =>
+    100 - r.teams.reduce((sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0);
+
   rows.sort((a, b) => {
-    const aTotal = a.live_wins;
-    const bTotal = b.live_wins;
-    if (bTotal !== aTotal) return bTotal - aTotal;
+    if (b.live_wins !== a.live_wins) return b.live_wins - a.live_wins;
+    const diff = liveMoney(b) - liveMoney(a);
+    if (diff !== 0) return diff;
     return b.tiebreaker_points - a.tiebreaker_points;
   });
 

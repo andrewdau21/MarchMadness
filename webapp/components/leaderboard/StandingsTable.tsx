@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Fragment, memo, useEffect, useRef } from "react";
+import { useState, useMemo, Fragment, memo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { StandingsRow, StandingsApiResponse, StandingsTeamSlot } from "@/lib/types";
 import { BUDGET_CAP } from "@/lib/types";
@@ -119,7 +119,7 @@ const StandingsRowItem = memo(function StandingsRowItem({
   onPin,
 }: {
   row: StandingsRow;
-  rank: number;
+  rank: string;
   isExpanded: boolean;
   isMyEntry: boolean;
   onToggle: () => void;
@@ -152,7 +152,7 @@ const StandingsRowItem = memo(function StandingsRowItem({
           </span>
         </td>
         <td style={{ padding: "10px 12px", width: 40 }}>
-          <span className="font-bold tabular-nums" style={{ color: "var(--text-muted)", fontSize: "13px" }}>
+          <span className="font-bold tabular-nums" style={{ color: rank.startsWith("T") ? "var(--accent)" : "var(--text-muted)", fontSize: "13px" }}>
             {rank}
           </span>
         </td>
@@ -257,24 +257,38 @@ export function StandingsTable({ limit, autoRefresh = true }: { limit?: number; 
     }
   }
 
+  // Compute tie-aware ranks from sorted allRows
+  const rankMap = useMemo(() => {
+    const map = new Map<string, string>();
+    let i = 0;
+    while (i < allRows.length) {
+      const lw = allRows[i].live_wins;
+      let j = i;
+      while (j < allRows.length && allRows[j].live_wins === lw) j++;
+      const label = j - i > 1 ? `T${i + 1}` : `${i + 1}`;
+      for (let k = i; k < j; k++) map.set(allRows[k].entry_name, label);
+      i = j;
+    }
+    return map;
+  }, [allRows]);
+
   // Rows to display: top N, plus pinned entry if outside top N, plus search results
   const trimmed = search.trim().toLowerCase();
-  let visibleRows: { row: StandingsRow; rank: number }[];
+  let visibleRows: { row: StandingsRow; rank: string }[];
 
   if (trimmed) {
-    // Search mode: show all matches across full standings
     visibleRows = allRows
-      .map((row, i) => ({ row, rank: i + 1 }))
+      .map((row) => ({ row, rank: rankMap.get(row.entry_name) ?? "" }))
       .filter(({ row }) => row.entry_name.toLowerCase().includes(trimmed));
   } else {
     const topN = limit != null ? allRows.slice(0, limit) : allRows;
-    visibleRows = topN.map((row, i) => ({ row, rank: i + 1 }));
+    visibleRows = topN.map((row) => ({ row, rank: rankMap.get(row.entry_name) ?? "" }));
 
     // If pinned entry is outside the top N, append it
     if (myEntry && limit != null) {
       const myIdx = allRows.findIndex(r => r.entry_name === myEntry);
       if (myIdx >= limit) {
-        visibleRows = [...visibleRows, { row: allRows[myIdx], rank: myIdx + 1 }];
+        visibleRows = [...visibleRows, { row: allRows[myIdx], rank: rankMap.get(allRows[myIdx].entry_name) ?? "" }];
       }
     }
   }
@@ -337,13 +351,23 @@ export function StandingsTable({ limit, autoRefresh = true }: { limit?: number; 
               placeholder="Find entry…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-7 pr-3 py-1.5 rounded-md text-xs w-full sm:w-36 focus:outline-none"
+              className="pl-7 pr-6 py-1.5 rounded-md text-xs w-full sm:w-36 focus:outline-none"
               style={{
                 background: "var(--muted)",
                 color: "var(--text)",
                 border: "1px solid var(--border)",
               }}
             />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs leading-none"
+                style={{ color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
           </div>
           {lastUpdated && (
             <span className="text-xs shrink-0 hidden sm:block" style={{ color: "var(--text-muted)" }}>
@@ -378,7 +402,8 @@ export function StandingsTable({ limit, autoRefresh = true }: { limit?: number; 
             {visibleRows.map(({ row, rank }, idx) => {
               const isPinned = myEntry === row.entry_name;
               // Separator before pinned entry if it's outside top N
-              const showSeparator = !trimmed && limit != null && rank > limit && idx > 0;
+              const numericRank = parseInt(rank.replace("T", ""), 10);
+              const showSeparator = !trimmed && limit != null && numericRank > limit && idx > 0;
               return (
                 <Fragment key={row.entry_name}>
                   {showSeparator && (
