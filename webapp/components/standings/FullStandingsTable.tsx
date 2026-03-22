@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Fragment } from "react";
+import React, { useState, useMemo, useRef, Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   useReactTable,
@@ -341,7 +341,12 @@ function TeamFilterPanel({
 
 const col = createColumnHelper<StandingsRow>();
 
-function makeColumns(rankMap: Map<string, string>, scoreMap?: Map<string, number>) {
+function makeColumns(
+  rankMap: Map<string, string>,
+  scoreMap?: Map<string, number>,
+  rowOrder = false,
+  rowPositionRef?: React.MutableRefObject<Map<string, number>>
+) {
   return [
   col.display({
     id: "expander",
@@ -368,6 +373,14 @@ function makeColumns(rankMap: Map<string, string>, scoreMap?: Map<string, number
     header: "#",
     enableSorting: true,
     cell: ({ row }) => {
+      if (rowOrder) {
+        const pos = rowPositionRef?.current.get(row.original.entry_name) ?? row.index + 1;
+        return (
+          <span className="font-bold tabular-nums text-sm" style={{ color: "var(--text-muted)" }}>
+            {pos}
+          </span>
+        );
+      }
       const rank = rankMap.get(row.original.entry_name) ?? "";
       const isTie = rank.startsWith("T");
       return (
@@ -376,11 +389,13 @@ function makeColumns(rankMap: Map<string, string>, scoreMap?: Map<string, number
         </span>
       );
     },
-    sortingFn: (a, b) => {
-      const ra = parseInt((rankMap.get(a.original.entry_name) ?? "").replace("T", ""), 10);
-      const rb = parseInt((rankMap.get(b.original.entry_name) ?? "").replace("T", ""), 10);
-      return ra - rb;
-    },
+    sortingFn: rowOrder
+      ? (a, b) => a.index - b.index
+      : (a, b) => {
+          const ra = parseInt((rankMap.get(a.original.entry_name) ?? "").replace("T", ""), 10);
+          const rb = parseInt((rankMap.get(b.original.entry_name) ?? "").replace("T", ""), 10);
+          return ra - rb;
+        },
     size: 40,
   }),
 
@@ -436,48 +451,41 @@ function makeColumns(rankMap: Map<string, string>, scoreMap?: Map<string, number
   }),
 
   // Live $
-  col.display({
-    id: "live_money",
-    header: "Live $",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const deadMoney = row.original.teams.reduce(
-        (sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0
-      );
-      const remaining = BUDGET_CAP - deadMoney;
-      return (
-        <span className="tabular-nums text-xs font-medium" style={{ color: remaining > 0 ? "var(--accent)" : "var(--text-muted)" }}>
-          ${remaining}
-        </span>
-      );
-    },
-    sortingFn: (a, b) => {
-      const liveMoney = (r: StandingsRow) => BUDGET_CAP - r.teams.reduce((sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0);
-      return liveMoney(a.original) - liveMoney(b.original);
-    },
-    size: 65,
-  }),
+  col.accessor(
+    (row) => BUDGET_CAP - row.teams.reduce((sum, s) => sum + (s.teamName && s.opacity < 0.5 ? s.cost : 0), 0),
+    {
+      id: "live_money",
+      header: "Live $",
+      cell: (info) => {
+        const remaining = info.getValue() as number;
+        return (
+          <span className="tabular-nums text-xs font-medium" style={{ color: remaining > 0 ? "var(--accent)" : "var(--text-muted)" }}>
+            ${remaining}
+          </span>
+        );
+      },
+      size: 65,
+    }
+  ),
 
   // Team count
-  col.display({
-    id: "teams_count",
-    header: "Alive",
-    enableSorting: true,
-    cell: ({ row }) => {
-      const active = row.original.teams.filter((t) => t.teamName && t.opacity >= 1).length;
-      const total = row.original.teams.filter((t) => t.teamName).length;
-      return (
-        <span className="text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
-          <span style={{ color: "var(--accent)" }}>{active}</span>/{total}
-        </span>
-      );
-    },
-    sortingFn: (a, b) => {
-      const alive = (r: StandingsRow) => r.teams.filter((t) => t.teamName && t.opacity >= 1).length;
-      return alive(a.original) - alive(b.original);
-    },
-    size: 70,
-  }),
+  col.accessor(
+    (row) => row.teams.filter((t) => t.teamName && t.opacity >= 1).length,
+    {
+      id: "teams_count",
+      header: "Alive",
+      cell: (info) => {
+        const active = info.getValue() as number;
+        const total = info.row.original.teams.filter((t) => t.teamName).length;
+        return (
+          <span className="text-xs tabular-nums" style={{ color: "var(--text-muted)" }}>
+            <span style={{ color: "var(--accent)" }}>{active}</span>/{total}
+          </span>
+        );
+      },
+      size: 70,
+    }
+  ),
   // Enhanced score column — only shown in enhanced mode
   ...(scoreMap ? [col.display({
     id: "enhanced_score",
@@ -504,7 +512,8 @@ export function FullStandingsTable() {
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [selectedTeams, setSelectedTeams] = useState<Set<string>>(new Set());
-  const [rankMode, setRankMode] = useState<"standard" | "money" | "enhanced">("standard");
+  const [rankMode, setRankMode] = useState<"standard" | "money" | "enhanced" | "roworder">("standard");
+  const rowPositionRef = useRef(new Map<string, number>());
 
   const { data, isLoading, isError, dataUpdatedAt } = useQuery<StandingsApiResponse>({
     queryKey: ["standings"],
@@ -595,7 +604,7 @@ export function FullStandingsTable() {
 
   const activeRankMap = rankMode === "enhanced" ? enhancedRankMap : rankMode === "money" ? moneyRankMap : rankMap;
   const columns = useMemo(
-    () => makeColumns(activeRankMap, rankMode === "enhanced" ? enhancedScoreMap : undefined),
+    () => makeColumns(activeRankMap, rankMode === "enhanced" ? enhancedScoreMap : undefined, rankMode === "roworder", rowPositionRef),
     [activeRankMap, rankMode, enhancedScoreMap]
   );
 
@@ -645,6 +654,8 @@ export function FullStandingsTable() {
         if (b.live_wins !== a.live_wins) return b.live_wins - a.live_wins;
         return liveMoney(b) - liveMoney(a);
       });
+    } else if (rankMode === "roworder") {
+      // No pre-sort — TanStack column clicks drive the order entirely
     } else {
       result = [...result].sort((a, b) => {
         if (b.live_wins !== a.live_wins) return b.live_wins - a.live_wins;
@@ -694,6 +705,13 @@ export function FullStandingsTable() {
     );
   }
 
+  // Keep rowPositionRef in sync with current sorted order for "roworder" mode
+  if (rankMode === "roworder") {
+    const newMap = new Map<string, number>();
+    table.getRowModel().rows.forEach((row, i) => newMap.set(row.original.entry_name, i + 1));
+    rowPositionRef.current = newMap;
+  }
+
   return (
     <div className="mc-card overflow-hidden">
       {/* Toolbar */}
@@ -716,13 +734,14 @@ export function FullStandingsTable() {
               border: "1px solid var(--border)", fontSize: "11px", fontWeight: 600,
             }}
           >
-            {(["standard", "money", "enhanced"] as const).map((mode) => (
+            {(["standard", "money", "enhanced", "roworder"] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => { setRankMode(mode); setSorting([]); }}
                 title={
                   mode === "money" ? "Rank by Live Wins then Live $, ties only when both match" :
                   mode === "enhanced" ? "Score = 50% Live Wins + 30% Live $ + 20% Teams Alive" :
+                  mode === "roworder" ? "Sequential row numbers based on current column sort" :
                   "Rank by Live Wins (ties on live wins)"
                 }
                 style={{
@@ -732,7 +751,7 @@ export function FullStandingsTable() {
                   transition: "all 0.15s",
                 }}
               >
-                {mode === "standard" ? "Standard" : mode === "money" ? "Live $" : "Enhanced ✦"}
+                {mode === "standard" ? "Standard" : mode === "money" ? "Live $" : mode === "enhanced" ? "Enhanced ✦" : "Row Order"}
               </button>
             ))}
           </div>
@@ -790,6 +809,8 @@ export function FullStandingsTable() {
           <span><span style={{ color: "var(--accent)" }}>Enhanced ✦</span> = 50% Live Wins + 30% Live $ + 20% Teams Alive (normalized 0–100)</span>
         ) : rankMode === "money" ? (
           <span><span style={{ color: "var(--accent)" }}>Live $</span> rank = Live Wins → Live $ · ties only when both match exactly</span>
+        ) : rankMode === "roworder" ? (
+          <span><span style={{ color: "var(--accent)" }}>Row Order</span> = sequential 1…N based on current column sort · click any header to reorder</span>
         ) : (
           <span><span style={{ color: "var(--accent)" }}>Total</span> = wins + live fractional wins · ties on Live Wins</span>
         )}
