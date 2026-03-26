@@ -18,7 +18,7 @@ const ESPN_BASE = "http://site.api.espn.com/apis/site/v2/sports/basketball/mens-
 function getScoreboardUrl(date?: string): string {
   const year = new Date().getFullYear();
   const dateParam = date ?? `${year}0319-${year}0414`;
-  return `${ESPN_BASE}/scoreboard?lang=en&region=us&limit=50&dates=${dateParam}&groups=100`;
+  return `${ESPN_BASE}/scoreboard?lang=en&region=us&limit=200&dates=${dateParam}&groups=100`;
 }
 
 function todayESPN(): string {
